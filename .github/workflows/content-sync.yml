@@ -44,10 +44,9 @@ jobs:
 
             DEST=".external/$NAME"
             rm -rf "$DEST"
+            
             git clone --depth 1 --branch "$REF" "https://github.com/${REPO}.git" "$DEST"
-
-            cd "$DEST"
-            git fetch --tags --quiet
+            git -C "$DEST" fetch --tags --quiet
 
             # Latest tag starting with v
             LATEST_TAG="$(git tag --list 'v*' --sort=-v:refname | head -n 1 | tr -d '[:space:]' || true)"
