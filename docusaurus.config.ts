@@ -86,7 +86,13 @@ const config: Config = {
           position: 'left',
           label: 'Documentation',
         },
-        {to: '/releases', label: 'Releases', position: 'left'},
+        {to: '/Releases', label: 'Releases', position: 'left'},
+        {
+          type: 'docSidebar',
+          sidebarId: 'gameServersSidebar',
+          position: 'left',
+          label: 'Game Servers',
+        },
         {
           href: 'https://github.com/LANCommander/LANCommander',
           label: 'GitHub',
