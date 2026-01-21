@@ -17,7 +17,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0   # needed for tagging
-          persist-credentials: false  # IMPORTANT: don't inject auth into git config
 
       - name: Install dependencies
         run: |
@@ -27,13 +26,8 @@ jobs:
           sudo chmod +x /usr/local/bin/yq
 
       - name: Sync sources
-        env:
-          GIT_TERMINAL_PROMPT: "0"
         run: |
           set -euo pipefail
-
-          # In case any prior step injected GitHub auth headers, remove them.
-          git config --global --unset-all http.https://github.com/.extraheader || true
 
           mkdir -p .external
           COMMIT_LINES=()
@@ -50,19 +44,7 @@ jobs:
 
             DEST=".external/$NAME"
             rm -rf "$DEST"
-
-            # Hard-disable any auth that checkout may have injected
-            git config --global --unset-all http.https://github.com/.extraheader || true
-            git config --local  --unset-all http.https://github.com/.extraheader || true
-
-            unset GIT_ASKPASS SSH_ASKPASS
-            unset GITHUB_TOKEN GH_TOKEN
-
-            # For absolute certainty: run clone with empty credential helper + empty extraheader
-            git -c credential.helper= \
-                -c core.askPass= \
-                -c http.https://github.com/.extraheader= \
-                clone --depth 1 --branch "$REF" "https://github.com/${REPO}.git" "$DEST"
+            git clone --depth 1 --branch "$REF" "https://github.com/${REPO}.git" "$DEST"
             git -C "$DEST" fetch --tags --quiet
 
             # Latest tag starting with v (IN THE SOURCE REPO)
