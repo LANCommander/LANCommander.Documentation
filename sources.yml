@@ -26,4 +26,4 @@ sources:
     ref: main
     paths:
       - from: Documentation/
-        to: Documentation/GameServers/UT2004
+        to: GameServers/UT2004
