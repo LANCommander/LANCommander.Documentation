@@ -17,6 +17,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0   # needed for tagging
+          persist-credentials: false  # IMPORTANT: don't inject auth into git config
 
       - name: Install dependencies
         run: |
@@ -26,8 +27,13 @@ jobs:
           sudo chmod +x /usr/local/bin/yq
 
       - name: Sync sources
+        env:
+          GIT_TERMINAL_PROMPT: "0"
         run: |
           set -euo pipefail
+
+          # In case any prior step injected GitHub auth headers, remove them.
+          git config --global --unset-all http.https://github.com/.extraheader || true
 
           mkdir -p .external
           COMMIT_LINES=()
@@ -45,12 +51,12 @@ jobs:
             DEST=".external/$NAME"
             rm -rf "$DEST"
 
+            # Public clone (no auth required)
             git clone --depth 1 --branch "$REF" "https://github.com/${REPO}.git" "$DEST"
             git -C "$DEST" fetch --tags --quiet
 
-            # Latest tag starting with v
-            LATEST_TAG="$(git tag --list 'v*' --sort=-v:refname | head -n 1 | tr -d '[:space:]' || true)"
-
+            # Latest tag starting with v (IN THE SOURCE REPO)
+            LATEST_TAG="$(git -C "$DEST" tag --list 'v*' --sort=-v:refname | head -n 1 | tr -d '[:space:]' || true)"
             VERSION="${LATEST_TAG:-unversioned}"
 
             COMMIT_LINES+=("$NAME@$VERSION")
@@ -85,11 +91,14 @@ jobs:
 
       - name: Create source tags
         run: |
-          while read TAG; do
-            if git rev-parse "$TAG" >/dev/null 2>&1; then
+          while read -r TAG; do
+            [ -z "$TAG" ] && continue
+
+            if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
               echo "Tag $TAG already exists"
             else
-              git tag "$TAG"
-              git push origin "$TAG" -m "Docs synced from $TAG"
+              # Create an annotated tag so you can attach a message
+              git tag -a "$TAG" -m "Docs synced from $TAG"
+              git push origin "$TAG"
             fi
           done < /tmp/tags.txt
