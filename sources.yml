@@ -1,0 +1,29 @@
+sources:
+  - name: lancommander
+    repo: lancommander/lancommander
+    ref: main
+    paths:
+      - from: LANCommander.Documentation/
+        to: Documentation/
+
+  # Game Servers        
+  - name: counterstrikesource
+    repo: lancommander/counterstrikesource
+    ref: main
+    paths:
+      - from: Documentation/
+        to: Documentation/GameServers/CounterStrikeSource
+
+  - name: zandronum
+    repo: lancommander/zandronum
+    ref: main
+    paths:
+      - from: Documentation/
+        to: Documentation/GameServers/Zandronum
+
+  - name: ut2004
+    repo: lancommander/ut2004
+    ref: main
+    paths:
+      - from: Documentation/
+        to: Documentation/GameServers/UT2004

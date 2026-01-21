@@ -1,0 +1,97 @@
+name: Sync external docs sources
+
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [docs-sources-updated]
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Docusaurus repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # needed for tagging
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rsync
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Sync sources
+        run: |
+          set -euo pipefail
+
+          mkdir -p .external
+          COMMIT_LINES=()
+          TAGS_TO_CREATE=()
+
+          COUNT="$(yq '.sources | length' docs-sources.yml)"
+
+          for i in $(seq 0 $((COUNT-1))); do
+            NAME="$(yq -r ".sources[$i].name" docs-sources.yml)"
+            REPO="$(yq -r ".sources[$i].repo" docs-sources.yml)"
+            REF="$(yq -r ".sources[$i].ref // \"main\"" docs-sources.yml)"
+
+            echo "Syncing $NAME ($REPO@$REF)"
+
+            DEST=".external/$NAME"
+            rm -rf "$DEST"
+            git clone --depth 1 --branch "$REF" "https://github.com/${REPO}.git" "$DEST"
+
+            cd "$DEST"
+            git fetch --tags --quiet
+
+            # Latest tag starting with v
+            LATEST_TAG="$(git tag --list 'v*' --sort=-v:refname | head -n 1 | tr -d '[:space:]' || true)"
+            cd -
+
+            VERSION="${LATEST_TAG:-unversioned}"
+
+            COMMIT_LINES+=("$NAME@$VERSION")
+            [ -n "$LATEST_TAG" ] && TAGS_TO_CREATE+=("$NAME/$LATEST_TAG")
+
+            MAP_COUNT="$(yq ".sources[$i].paths | length" docs-sources.yml)"
+            for j in $(seq 0 $((MAP_COUNT-1))); do
+              FROM="$(yq -r ".sources[$i].paths[$j].from" docs-sources.yml)"
+              TO="$(yq -r ".sources[$i].paths[$j].to" docs-sources.yml)"
+
+              mkdir -p "$TO"
+              rsync -av --delete "$DEST/$FROM" "$TO"
+            done
+          done
+
+          printf "%s\n" "${COMMIT_LINES[@]}" > /tmp/sources.txt
+          printf "%s\n" "${TAGS_TO_CREATE[@]}" > /tmp/tags.txt
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          if git status --porcelain | grep .; then
+            MSG="Sync docs sources\n\n$(cat /tmp/sources.txt)"
+            git add -A
+            git commit -m "$MSG"
+            git push
+          else
+            echo "No changes to commit."
+          fi
+
+      - name: Create source tags
+        run: |
+          while read TAG; do
+            if git rev-parse "$TAG" >/dev/null 2>&1; then
+              echo "Tag $TAG already exists"
+            else
+              git tag "$TAG"
+              git push origin "$TAG" -m "Docs synced from $TAG"
+            fi
+          done < /tmp/tags.txt
