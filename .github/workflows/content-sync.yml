@@ -50,7 +50,6 @@ jobs:
 
             # Latest tag starting with v
             LATEST_TAG="$(git tag --list 'v*' --sort=-v:refname | head -n 1 | tr -d '[:space:]' || true)"
-            popd >/dev/null
 
             VERSION="${LATEST_TAG:-unversioned}"
 
