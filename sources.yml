@@ -7,19 +7,19 @@ sources:
         to: Documentation/
 
   # Game Servers        
-  - name: counterstrikesource
-    repo: LANCommander/LANCommander.Servers.CounterStrikeSource
-    ref: main
-    paths:
-      - from: Documentation/
-        to: Documentation/GameServers/CounterStrikeSource
+  # - name: counterstrikesource
+  #   repo: LANCommander/LANCommander.Servers.CounterStrikeSource
+  #   ref: main
+  #   paths:
+  #     - from: Documentation/
+  #       to: Documentation/GameServers/CounterStrikeSource
 
-  - name: zandronum
-    repo: LANCommander/LANCommander.Servers.Zandronum
-    ref: main
-    paths:
-      - from: Documentation/
-        to: Documentation/GameServers/Zandronum
+  # - name: zandronum
+  #   repo: LANCommander/LANCommander.Servers.Zandronum
+  #   ref: main
+  #   paths:
+  #     - from: Documentation/
+  #       to: Documentation/GameServers/Zandronum
 
   - name: ut2004
     repo: LANCommander/LANCommander.Servers.UT2004
