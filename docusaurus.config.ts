@@ -1,6 +1,5 @@
 import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
-import type * as Preset from '@docusaurus/preset-classic';
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
@@ -35,36 +34,17 @@ const config: Config = {
     locales: ['en'],
   },
 
-  presets: [
-    [
-      'classic',
-      {
-        docs: {
-          lastVersion: 'current',
-          includeCurrentVersion: true,
-          versions: {
-            current: {
-              label: '2.0.0-rc2',
-              path: '2.0.0-rc2',
-            },
-          },
-          sidebarPath: './sidebars.ts',
-          path: 'Documentation',
-          routeBasePath: '/',
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://github.com/LANCommander/LANCommander/tree/main/LANCommander.Documentation',
-        },
-        blog: false,
-        theme: {
-          customCss: './src/css/custom.css',
-        },
-      } satisfies Preset.Options,
-    ],
-  ],
-
   plugins: [
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'documentation',
+        path: 'Documentation',
+        routeBasePath: '/',
+        sidebarPath: './sidebars.documentation.ts',
+        editUrl: 'https://github.com/LANCommander/LANCommander/tree/main/LANCommander.Documentation',
+      }
+    ],
     [
       '@docusaurus/plugin-content-docs',
       {
@@ -75,6 +55,8 @@ const config: Config = {
       }
     ]
   ],
+
+  themes: ['@docusaurus/theme-classic'],
 
   themeConfig: {
     // Replace with your project's social card
@@ -88,15 +70,12 @@ const config: Config = {
         src: 'img/logo.svg',
       },
       items: [
-        // {
-        //   type: 'docsVersionDropdown',
-        //   versions: ['current'],
-        // },
         {
           type: 'docSidebar',
           sidebarId: 'documentationSidebar',
           position: 'left',
           label: 'Documentation',
+          docsPluginId: 'documentation',
         },
         {to: '/Releases', label: 'Releases', position: 'left'},
         {
@@ -104,6 +83,7 @@ const config: Config = {
           sidebarId: 'gameServersSidebar',
           position: 'left',
           label: 'Game Servers',
+          docsPluginId: 'gameServers',
         },
         {
           href: 'https://github.com/LANCommander/LANCommander',
@@ -158,7 +138,7 @@ const config: Config = {
       darkTheme: prismThemes.dracula,
       additionalLanguages: ['powershell'],
     },
-  } satisfies Preset.ThemeConfig,
+  }
 };
 
 export default config;
