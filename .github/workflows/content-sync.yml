@@ -33,12 +33,12 @@ jobs:
           COMMIT_LINES=()
           TAGS_TO_CREATE=()
 
-          COUNT="$(yq '.sources | length' docs-sources.yml)"
+          COUNT="$(yq '.sources | length' sources.yml)"
 
           for i in $(seq 0 $((COUNT-1))); do
-            NAME="$(yq -r ".sources[$i].name" docs-sources.yml)"
-            REPO="$(yq -r ".sources[$i].repo" docs-sources.yml)"
-            REF="$(yq -r ".sources[$i].ref // \"main\"" docs-sources.yml)"
+            NAME="$(yq -r ".sources[$i].name" sources.yml)"
+            REPO="$(yq -r ".sources[$i].repo" sources.yml)"
+            REF="$(yq -r ".sources[$i].ref // \"main\"" sources.yml)"
 
             echo "Syncing $NAME ($REPO@$REF)"
 
@@ -58,10 +58,10 @@ jobs:
             COMMIT_LINES+=("$NAME@$VERSION")
             [ -n "$LATEST_TAG" ] && TAGS_TO_CREATE+=("$NAME/$LATEST_TAG")
 
-            MAP_COUNT="$(yq ".sources[$i].paths | length" docs-sources.yml)"
+            MAP_COUNT="$(yq ".sources[$i].paths | length" sources.yml)"
             for j in $(seq 0 $((MAP_COUNT-1))); do
-              FROM="$(yq -r ".sources[$i].paths[$j].from" docs-sources.yml)"
-              TO="$(yq -r ".sources[$i].paths[$j].to" docs-sources.yml)"
+              FROM="$(yq -r ".sources[$i].paths[$j].from" sources.yml)"
+              TO="$(yq -r ".sources[$i].paths[$j].to" sources.yml)"
 
               mkdir -p "$TO"
               rsync -av --delete "$DEST/$FROM" "$TO"
