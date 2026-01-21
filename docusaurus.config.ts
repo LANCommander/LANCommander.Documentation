@@ -64,6 +64,18 @@ const config: Config = {
     ],
   ],
 
+  plugins: [
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'gameServers',
+        path: 'GameServers',
+        routeBasePath: 'GameServers',
+        sidebarPath: './sidebars.gameServers.ts',
+      }
+    ]
+  ],
+
   themeConfig: {
     // Replace with your project's social card
     image: 'img/docusaurus-social-card.jpg',
@@ -76,10 +88,10 @@ const config: Config = {
         src: 'img/logo.svg',
       },
       items: [
-        {
-          type: 'docsVersionDropdown',
-          versions: ['current'],
-        },
+        // {
+        //   type: 'docsVersionDropdown',
+        //   versions: ['current'],
+        // },
         {
           type: 'docSidebar',
           sidebarId: 'documentationSidebar',
