@@ -7,12 +7,12 @@ sources:
         to: Documentation/
 
   # Game Servers        
-  # - name: counterstrikesource
-  #   repo: LANCommander/LANCommander.Servers.CounterStrikeSource
-  #   ref: main
-  #   paths:
-  #     - from: Documentation/
-  #       to: Documentation/GameServers/CounterStrikeSource
+  - name: counterstrikesource
+    repo: LANCommander/LANCommander.Servers.CounterStrikeSource
+    ref: main
+    paths:
+      - from: Documentation/
+        to: Documentation/GameServers/CounterStrikeSource
 
   # - name: zandronum
   #   repo: LANCommander/LANCommander.Servers.Zandronum
