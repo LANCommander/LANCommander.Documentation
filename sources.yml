@@ -14,6 +14,13 @@ sources:
       - from: Documentation/
         to: Documentation/GameServers/CounterStrikeSource
 
+  - name: quake3arena
+    repo: LANCommander/LANCommander.Servers.Quake3
+    ref: main
+    paths:
+      - from: Documentation/
+        to: Documentation/GameServers/Quake3Arena
+
   # - name: zandronum
   #   repo: LANCommander/LANCommander.Servers.Zandronum
   #   ref: main
