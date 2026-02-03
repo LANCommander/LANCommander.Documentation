@@ -6,20 +6,27 @@ sources:
       - from: LANCommander.Documentation/
         to: Documentation/
 
+  - name: bf1942
+    repo: LANCommander/LANCommander.Servers.Battlefield1942
+    ref: main
+    paths:
+      - from: Documentation/
+        to: GameServers/BF1942
+
   # Game Servers        
   - name: counterstrikesource
     repo: LANCommander/LANCommander.Servers.CounterStrikeSource
     ref: main
     paths:
       - from: Documentation/
-        to: Documentation/GameServers/CounterStrikeSource
+        to: GameServers/CounterStrikeSource
 
   - name: quake3arena
     repo: LANCommander/LANCommander.Servers.Quake3
     ref: main
     paths:
       - from: Documentation/
-        to: Documentation/GameServers/Quake3Arena
+        to: GameServers/Quake3Arena
 
   # - name: zandronum
   #   repo: LANCommander/LANCommander.Servers.Zandronum
