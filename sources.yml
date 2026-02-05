@@ -28,6 +28,13 @@ sources:
       - from: Documentation/
         to: GameServers/EliteForce
 
+  - name: jedioutcast
+    repo: LANCommander/LANCommander.Servers.JediOutcast
+    ref: main
+    paths:
+      - from: Documentation/
+        to: GameServers/JediOutcast
+
   - name: quake3arena
     repo: LANCommander/LANCommander.Servers.Quake3
     ref: main
