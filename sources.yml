@@ -28,6 +28,13 @@ sources:
       - from: Documentation/
         to: GameServers/Quake3Arena
 
+  - name: rtcw
+    repo: LANCommander/LANCommander.Servers.RTCW
+    ref: main
+    paths:
+      - from: Documentation/
+        to: GameServers/RTCW
+
   # - name: zandronum
   #   repo: LANCommander/LANCommander.Servers.Zandronum
   #   ref: main
