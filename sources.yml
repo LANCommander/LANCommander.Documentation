@@ -21,6 +21,13 @@ sources:
       - from: Documentation/
         to: GameServers/CounterStrikeSource
 
+  - name: eliteforce
+    repo: LANCommander/LANCommander.Servers.EliteForce
+    ref: main
+    paths:
+      - from: Documentation/
+        to: GameServers/EliteForce
+
   - name: quake3arena
     repo: LANCommander/LANCommander.Servers.Quake3
     ref: main
