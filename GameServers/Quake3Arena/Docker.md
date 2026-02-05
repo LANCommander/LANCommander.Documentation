@@ -1,3 +1,7 @@
+---
+sidebar_label: Docker
+---
+
 # Quake 3 Docker Container
 This Docker container provides a Quake 3 Arena game server that automatically downloads ioquake3, supports file overlaying using OverlayFS, and has a built in HTTP server for FastDL configurations.
 
