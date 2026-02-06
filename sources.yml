@@ -49,6 +49,13 @@ sources:
       - from: Documentation/
         to: GameServers/JediOutcast
 
+  - name: portalknights
+    repo: LANCommander/LANCommander.Servers.PortalKnights
+    ref: main
+    paths:
+      - from: Documentation/
+        to: GameServers/PortalKnights
+
   - name: quake3arena
     repo: LANCommander/LANCommander.Servers.Quake3
     ref: main
