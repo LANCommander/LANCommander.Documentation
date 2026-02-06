@@ -4,8 +4,8 @@ sidebar_label: Docker
 
 # Portal Knights Dedicated Server
 
-This repository provides a Dockerized **Portal Knights dedicated server via OpenJK** suitable for running multiplayer Portal Knights servers in a clean, reproducible way.  
-The image is designed for **headless operation**, supports bind-mounted mods and configuration, and handles legacy runtime dependencies required by Portal Knights.
+This repository provides a Dockerized **Portal Knights dedicated server via WINE** suitable for running multiplayer Portal Knights servers in a clean, reproducible way.  
+The image is designed for **headless operation**, supports bind-mounted configuration, and handles runtime dependencies required by Portal Knights.
 
 ---
 
