@@ -28,6 +28,13 @@ sources:
       - from: Documentation/
         to: GameServers/EliteForce
 
+  - name: jediacademy
+    repo: LANCommander/LANCommander.Servers.JediAcademy
+    ref: main
+    paths:
+      - from: Documentation/
+        to: GameServers/JediAcademy
+
   - name: jedioutcast
     repo: LANCommander/LANCommander.Servers.JediOutcast
     ref: main
