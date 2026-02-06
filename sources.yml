@@ -13,7 +13,14 @@ sources:
       - from: Documentation/
         to: GameServers/BF1942
 
-  # Game Servers        
+  # Game Servers
+  - name: callofduty
+    repo: LANCommander/LANCommander.Servers.CallOfDuty
+    ref: main
+    paths:
+      - from: Documentation/
+        to: GameServers/CallOfDuty
+
   - name: counterstrikesource
     repo: LANCommander/LANCommander.Servers.CounterStrikeSource
     ref: main
