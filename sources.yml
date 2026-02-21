@@ -6,6 +6,7 @@ sources:
       - from: LANCommander.Documentation/
         to: Documentation/
 
+  # Game Servers
   - name: bf1942
     repo: LANCommander/LANCommander.Servers.Battlefield1942
     ref: main
@@ -13,7 +14,6 @@ sources:
       - from: Documentation/
         to: GameServers/BF1942
 
-  # Game Servers
   - name: callofduty
     repo: LANCommander/LANCommander.Servers.CallOfDuty
     ref: main
@@ -27,6 +27,13 @@ sources:
     paths:
       - from: Documentation/
         to: GameServers/CounterStrikeSource
+
+  - name: darkmessiah
+    repo: LANCommander/LANCommander.Servers.DarkMessiah
+    ref: main
+    paths:
+      - from: Documentation/
+        to: GameServers/DarkMessiah
 
   - name: eliteforce
     repo: LANCommander/LANCommander.Servers.EliteForce
