@@ -1,5 +1,6 @@
 import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config} from '@docusaurus/types';
+import type * as OpenApiPlugin from "docusaurus-plugin-openapi-docs";
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
@@ -54,10 +55,26 @@ const config: Config = {
         routeBasePath: 'GameServers',
         sidebarPath: './sidebars.gameServers.ts',
       }
-    ]
+    ],
+    [
+      'docusaurus-plugin-openapi-docs',
+      {
+        id: 'api',
+        docsPluginId: 'documentation',
+        config: {
+          lancommanderApi: {
+            specPath: 'https://raw.githubusercontent.com/LANCommander/LANCommander/main/LANCommander.API/openapi.yaml',
+            outputDir: 'API',
+            sidebarOptions: {
+              groupPathsBy: 'tag',
+            }
+          } satisfies OpenApiPlugin.Options,
+        }
+      }
+    ],
   ],
 
-  themes: ['@docusaurus/theme-classic'],
+  themes: [['@docusaurus/theme-classic', { customCss: require.resolve('./src/css/custom.css') }]],
 
   themeConfig: {
     // Replace with your project's social card

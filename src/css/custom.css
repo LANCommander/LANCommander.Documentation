@@ -5,20 +5,8 @@
  */
 
 /* You can override the default Infima variables here. */
-:root {
-  --ifm-color-primary: #1890ff;
-  --ifm-color-primary-dark: #096dd9;
-  --ifm-color-primary-darker: #0050b3;
-  --ifm-color-primary-darkest: #003a8c;
-  --ifm-color-primary-light: #40a9ff;
-  --ifm-color-primary-lighter: #69c0ff;
-  --ifm-color-primary-lightest: #91d5ff;
-  --ifm-code-font-size: 95%;
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.1);
-}
-
-/* AntDesign dark theme colors */
-[data-theme='dark'] {
+:root,
+html[data-theme='dark'] {
   --ifm-color-primary: #1890ff;
   --ifm-color-primary-dark: #096dd9;
   --ifm-color-primary-darker: #0050b3;
@@ -28,10 +16,10 @@
   --ifm-color-primary-lightest: #91d5ff;
   
   /* AntDesign dark background colors */
-  --ifm-background-color: #141414;
-  --ifm-navbar-background-color: #141414;
-  --ifm-footer-background-color: #141414;
-  --ifm-card-background-color: #1f1f1f;
+  --ifm-background-color: #000;
+  --ifm-navbar-background-color: #000;
+  --ifm-footer-background-color: #000;
+  --ifm-card-background-color: #000;
   
   /* AntDesign dark text colors */
   --ifm-color-content: rgba(255, 255, 255, 0.85);
@@ -42,4 +30,15 @@
   --ifm-color-emphasis-300: rgba(255, 255, 255, 0.12);
   
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
+
+  --ifm-button-border-radius: 3px;
+}
+
+.footer--dark {
+  background: #000;
+}
+
+.button {
+  display: flex;
+  align-items: center;
 }

@@ -5,7 +5,7 @@
 }
 
 [data-theme='dark'] .features {
-  background: rgba(255, 255, 255, 0.025);
+  background: #141414;
 }
 
 .sectionHeading {
@@ -31,20 +31,18 @@
 .featureCard {
   padding: 1.75rem 1.5rem;
   height: 100%;
-  border-radius: 10px;
-  border: 1px solid var(--ifm-color-emphasis-200);
   background: #ffffff;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 [data-theme='dark'] .featureCard {
-  background: var(--ifm-card-background-color);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .featureCard:hover {
   border-color: var(--ifm-color-primary);
-  box-shadow: 0 6px 24px rgba(24, 144, 255, 0.14);
-  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.5);
+  transform: scale(1.05);
 }
 
 .featureIcon {
