@@ -35,6 +35,7 @@ const config: Config = {
   },
 
   plugins: [
+    '@docusaurus/plugin-content-pages',
     [
       '@docusaurus/plugin-content-docs',
       {

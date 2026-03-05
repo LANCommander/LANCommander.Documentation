@@ -1,23 +1,148 @@
-/**
- * CSS files with the .module.css suffix will be treated as CSS modules
- * and scoped locally.
- */
-
+/* Hero Banner */
 .heroBanner {
-  padding: 4rem 0;
+  background-size: cover;
+  background-position: center;
+  padding: 5.5rem 0;
   text-align: center;
   position: relative;
   overflow: hidden;
 }
 
-@media screen and (max-width: 996px) {
-  .heroBanner {
-    padding: 2rem;
-  }
+.heroBannerOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0.65) 100%);
+  pointer-events: none;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.heroLogo {
+  max-width: 380px;
+  width: 100%;
+  height: auto;
+  margin-bottom: 1.75rem;
+  filter: drop-shadow(0 2px 12px rgba(0, 0, 0, 0.4));
+}
+
+.heroSubtitle {
+  font-size: 1.2rem;
+  color: #fff;
+  max-width: 560px;
+  margin: 0 auto 2.5rem;
+  line-height: 1.65;
 }
 
 .buttons {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.875rem;
+  flex-wrap: wrap;
+}
+
+.getStartedButton {
+  color: #ffffff !important;
+}
+
+.ghostButton {
+  color: rgba(255, 255, 255, 0.82) !important;
+  border-color: rgba(255, 255, 255, 0.28) !important;
+}
+
+.ghostButton:hover {
+  color: #ffffff !important;
+  border-color: rgba(255, 255, 255, 0.65) !important;
+  background: rgba(255, 255, 255, 0.07) !important;
+}
+
+/* Screenshot Section */
+.screenshotSection {
+  padding: 5rem 0;
+}
+
+/* Community Section */
+.communitySection {
+  background-size: cover;
+  background-position: center;
+  padding: 5rem 0;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.communityContent {
+  position: relative;
+  z-index: 1;
+}
+
+/* Shared section heading styles */
+.sectionTitle {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+}
+
+.sectionSubtitle {
+  text-align: center;
+  font-size: 1.05rem;
+  color: var(--ifm-color-content-secondary);
+  max-width: 560px;
+  margin: 0 auto 3rem;
+  line-height: 1.65;
+}
+
+.communitySectionTitle {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+  color: #ffffff;
+}
+
+.communitySectionSubtitle {
+  text-align: center;
+  font-size: 1.05rem;
+  color: #ffffff;
+  max-width: 560px;
+  margin: 0 auto 2.5rem;
+  line-height: 1.65;
+}
+
+.communityButtons {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.875rem;
+}
+
+@media screen and (max-width: 996px) {
+  .heroBanner {
+    padding: 3.5rem 1.5rem;
+  }
+
+  .heroLogo {
+    max-width: 260px;
+  }
+
+  .heroSubtitle {
+    font-size: 1rem;
+  }
+
+  .screenshotSection,
+  .communitySection {
+    padding: 3.5rem 0;
+  }
+
+  .sectionTitle,
+  .communitySectionTitle {
+    font-size: 1.65rem;
+  }
 }
