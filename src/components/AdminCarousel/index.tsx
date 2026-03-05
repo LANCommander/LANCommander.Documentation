@@ -12,46 +12,40 @@ type Screenshot = {
 
 const screenshots: Screenshot[] = [
   {
-    src: '/img/screenshots/library.png',
-    alt: 'Game Library',
-    label: 'Game Library',
-    caption: 'Browse your entire game collection at a glance',
+    src: '/img/screenshots/admin/games.png',
+    alt: 'Game Management',
+    label: 'Game Management',
+    caption: 'Manage your game collection via the admin web UI',
   },
   {
-    src: '/img/screenshots/login.png',
-    alt: 'Login Screen',
-    label: 'Authentication',
-    caption: 'Simple sign-in with server-managed credentials',
+    src: '/img/screenshots/admin/servers.png',
+    alt: 'Server Management',
+    label: 'Server Management',
+    caption: 'Manage game servers from one interface',
   },
   {
-    src: '/img/screenshots/filter.png',
-    alt: 'Library Filter',
-    label: 'Search & Filter',
-    caption: 'Search and filter games by name, genre, and more',
+    src: '/img/screenshots/admin/redistributables.png',
+    alt: 'Redistributable Management',
+    label: 'Redistributable Management',
+    caption: 'Manage common redistributables and assign them to games',
   },
   {
-    src: '/img/screenshots/download-queue.png',
-    alt: 'Download Queue',
-    label: 'Download Queue',
-    caption: 'Monitor active downloads with a clear queue view',
+    src: '/img/screenshots/admin/dashboard.png',
+    alt: 'Dashboarding',
+    label: 'Dashboarding',
+    caption: 'Monitor player activity and popular games',
   },
   {
-    src: '/img/screenshots/settings.png',
-    alt: 'Client Settings',
-    label: 'Settings',
-    caption: 'Configure the client to suit your environment',
+    src: '/img/screenshots/admin/issues.png',
+    alt: 'Issue Tracking',
+    label: 'Issue Tracking',
+    caption: 'Collect and track issues submitted by users for games',
   },
   {
-    src: '/img/screenshots/save-management.png',
-    alt: 'Save Management',
-    label: 'Save Management',
-    caption: 'Cloud save sync keeps your progress across devices',
-  },
-  {
-    src: '/img/screenshots/addon-installation.png',
-    alt: 'Addon Installation',
-    label: 'Addon Management',
-    caption: 'Install game addons and mods with ease',
+    src: '/img/screenshots/admin/collections.png',
+    alt: 'Game Collections',
+    label: 'Game Collections',
+    caption: 'Sort and categorize games with metadata',
   },
 ];
 
@@ -71,7 +65,7 @@ function ChevronRight() {
   );
 }
 
-export default function ScreenshotCarousel(): ReactNode {
+export default function AdminCarousel(): ReactNode {
   const [current, setCurrent] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
 

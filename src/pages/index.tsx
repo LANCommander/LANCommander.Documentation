@@ -5,7 +5,8 @@ import useDocusaurusContext from '@docusaurus/useDocusaurusContext';
 import Layout from '@theme/Layout';
 import Heading from '@theme/Heading';
 import HomepageFeatures from '@site/src/components/HomepageFeatures';
-import ScreenshotCarousel from '@site/src/components/ScreenshotCarousel';
+import LauncherCarousel from '@site/src/components/LauncherCarousel';
+import AdminCarousel from '@site/src/components/AdminCarousel';
 
 import styles from './index.module.css';
 
@@ -64,7 +65,6 @@ function HomepageHeader() {
 function ScreenshotSection() {
   return (
     <section className={styles.screenshotSection}>
-      <div className="container">
         <Heading as="h2" className={styles.sectionTitle}>
           See it in Action
         </Heading>
@@ -72,8 +72,10 @@ function ScreenshotSection() {
           A complete game management solution with intuitive interfaces for both administrators and
           players.
         </p>
-        <ScreenshotCarousel />
-      </div>
+        <div className={styles.screenshotContainer}>
+          <LauncherCarousel />
+          <AdminCarousel />
+        </div>
     </section>
   );
 }

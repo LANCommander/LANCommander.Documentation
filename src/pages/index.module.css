@@ -64,6 +64,13 @@
 }
 
 /* Screenshot Section */
+.screenshotContainer {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+  align-items: center;
+}
+
 .screenshotSection {
   padding: 5rem 0;
 }
