@@ -91,11 +91,6 @@ export default function AdminCarousel(): ReactNode {
       onMouseLeave={() => setIsHovered(false)}>
       <div className={styles.frame}>
         <div className={styles.chrome}>
-          <div className={styles.chromeDots}>
-            <span className={styles.dotRed} />
-            <span className={styles.dotYellow} />
-            <span className={styles.dotGreen} />
-          </div>
           <div className={styles.chromeTitle}>{screenshots[current].label}</div>
         </div>
         <div className={styles.slides}>

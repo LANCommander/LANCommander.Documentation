@@ -13,42 +13,20 @@
   background: #0d0d0d;
 }
 
-/* macOS-style window chrome */
+/* Window chrome */
 .chrome {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 10px 14px;
-  background: #1c1c1e;
+  padding: 8px 14px;
+  background: #161618;
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
   user-select: none;
 }
 
-.chromeDots {
-  display: flex;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-.dotRed,
-.dotYellow,
-.dotGreen {
-  display: block;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-}
-
-.dotRed    { background: #ff5f57; }
-.dotYellow { background: #febc2e; }
-.dotGreen  { background: #28c840; }
-
 .chromeTitle {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.45);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 /* Slide area */
