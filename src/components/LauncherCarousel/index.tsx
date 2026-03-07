@@ -12,7 +12,7 @@ type Screenshot = {
 
 const screenshots: Screenshot[] = [
   {
-    src: '/img/screenshots/launcher/library.png',
+    src: '/img/screenshots/launcher/library.jpg',
     alt: 'Game Library',
     label: 'Game Library',
     caption: 'Browse your entire game collection at a glance',
@@ -42,13 +42,13 @@ const screenshots: Screenshot[] = [
     caption: 'Install game addons and mods with ease',
   },
   {
-    src: '/img/screenshots/launcher/depot.png',
+    src: '/img/screenshots/launcher/depot.jpg',
     alt: 'Depot',
     label: 'Depot',
     caption: 'Organize large libraries with a depot and user libraries',
   },
   {
-    src: '/img/screenshots/launcher/depot-install.png',
+    src: '/img/screenshots/launcher/depot-install.jpg',
     alt: 'Depot Game Details',
     label: 'Depot Game Details',
     caption: 'Browse games to add to your user library from the depot',
