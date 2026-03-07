@@ -140,7 +140,7 @@ const config: Config = {
           items: [
             {
               label: 'Releases',
-              to: '/releases',
+              to: '/Releases',
             },
             {
               label: 'GitHub',
