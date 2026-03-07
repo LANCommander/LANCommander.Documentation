@@ -12,34 +12,22 @@ type Screenshot = {
 
 const screenshots: Screenshot[] = [
   {
-    src: '/img/screenshots/library.png',
+    src: '/img/screenshots/launcher/library.png',
     alt: 'Game Library',
     label: 'Game Library',
     caption: 'Browse your entire game collection at a glance',
   },
   {
-    src: '/img/screenshots/login.png',
-    alt: 'Login Screen',
-    label: 'Authentication',
-    caption: 'Simple sign-in with server-managed credentials',
-  },
-  {
-    src: '/img/screenshots/filter.png',
-    alt: 'Library Filter',
-    label: 'Search & Filter',
-    caption: 'Search and filter games by name, genre, and more',
-  },
-  {
-    src: '/img/screenshots/download-queue.png',
+    src: '/img/screenshots/launcher/download-queue.png',
     alt: 'Download Queue',
     label: 'Download Queue',
     caption: 'Monitor active downloads with a clear queue view',
   },
   {
-    src: '/img/screenshots/settings.png',
-    alt: 'Client Settings',
+    src: '/img/screenshots/launcher/settings.png',
+    alt: 'Launcher Settings',
     label: 'Settings',
-    caption: 'Configure the client to suit your environment',
+    caption: 'Configure the launcher to suit your environment',
   },
   {
     src: '/img/screenshots/save-management.png',
@@ -48,10 +36,22 @@ const screenshots: Screenshot[] = [
     caption: 'Cloud save sync keeps your progress across devices',
   },
   {
-    src: '/img/screenshots/addon-installation.png',
+    src: '/img/screenshots/install-dialog.png',
     alt: 'Addon Installation',
     label: 'Addon Management',
     caption: 'Install game addons and mods with ease',
+  },
+  {
+    src: '/img/screenshots/depot.png',
+    alt: 'Depot',
+    label: 'Depot',
+    caption: 'Organize large libraries with a depot and user libraries',
+  },
+  {
+    src: '/img/screenshots/depot-install.png',
+    alt: 'Depot Game Details',
+    label: 'Depot Game Details',
+    caption: 'Browse games to add to your user library from the depot',
   },
 ];
 
