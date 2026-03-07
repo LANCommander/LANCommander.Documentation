@@ -4,6 +4,30 @@ import type * as OpenApiPlugin from "docusaurus-plugin-openapi-docs";
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
+function parseSemver(v: string) {
+  const m = v.match(/^(\d+)\.(\d+)\.(\d+)(?:-(.+))?$/);
+  if (!m) return null;
+  return {major: +m[1], minor: +m[2], patch: +m[3], pre: m[4] ?? null};
+}
+
+function semverDesc(a: string, b: string): number {
+  const va = parseSemver(a);
+  const vb = parseSemver(b);
+  if (!va || !vb) return b.localeCompare(a);
+  if (va.major !== vb.major) return vb.major - va.major;
+  if (va.minor !== vb.minor) return vb.minor - va.minor;
+  if (va.patch !== vb.patch) return vb.patch - va.patch;
+  if (!va.pre && vb.pre) return -1;
+  if (va.pre && !vb.pre) return 1;
+  if (va.pre && vb.pre) {
+    const am = va.pre.match(/^(\D*)(\d+)$/);
+    const bm = vb.pre.match(/^(\D*)(\d+)$/);
+    if (am && bm && am[1] === bm[1]) return +bm[2] - +am[2];
+    return vb.pre.localeCompare(va.pre);
+  }
+  return 0;
+}
+
 const config: Config = {
   title: 'LANCommander',
   tagline: 'Documentation for LANCommander, the self-hosted game library.',
@@ -45,6 +69,18 @@ const config: Config = {
         routeBasePath: '/',
         sidebarPath: './sidebars.documentation.ts',
         editUrl: 'https://github.com/LANCommander/LANCommander/tree/main/LANCommander.Documentation',
+        sidebarItemsGenerator: async ({defaultSidebarItemsGenerator, ...args}) => {
+          const items = await defaultSidebarItemsGenerator(args);
+          if (args.item.dirName === 'Releases') {
+            return [...items].sort((a: any, b: any) =>
+              semverDesc(
+                String(a.id ?? '').split('/').pop() ?? '',
+                String(b.id ?? '').split('/').pop() ?? '',
+              ),
+            );
+          }
+          return items;
+        },
       }
     ],
     [
@@ -95,7 +131,7 @@ const config: Config = {
           label: 'Documentation',
           docsPluginId: 'documentation',
         },
-        {to: '/Releases', label: 'Releases', position: 'left'},
+        {to: '/Category/Releases', label: 'Releases', position: 'left'},
         {
           type: 'docSidebar',
           sidebarId: 'gameServersSidebar',
@@ -120,6 +156,14 @@ const config: Config = {
               label: 'Documentation',
               to: '/Overview',
             },
+            {
+              label: 'Releases',
+              to: '/Releases',
+            },
+            {
+              label: 'Game Servers',
+              to: '/GameServers',
+            }
           ],
         },
         {
@@ -138,10 +182,6 @@ const config: Config = {
         {
           title: 'More',
           items: [
-            {
-              label: 'Releases',
-              to: '/Releases',
-            },
             {
               label: 'GitHub',
               href: 'https://github.com/LANCommander/LANCommander',
