@@ -63,7 +63,7 @@ vstr d1
 
 - **d1, d2, d3...** = String variable names (can be any name, but `d1`, `d2` is standard for "day")
 - **g_gametype 2** = Objective mode (see gametype reference in server_cvars.md)
-- **map <mapname>** = Load the specified map
+- **map mapname** = Load the specified map
 - **set nextmap vstr d2** = When this round ends, automatically execute string `d2`
 - **vstr d1** = Start the rotation with the first map
 
@@ -199,7 +199,7 @@ vstr d_initial
 
 ### Breakdown
 
-- **campaign <campaign_name>** = Load a campaign file
+- **campaign campaign_name** = Load a campaign file
 - **g_gametype 4** = Campaign mode
 - **nextcampaign** = Campaign-specific version of nextmap
   - Used instead of `nextmap` for campaign rotations
