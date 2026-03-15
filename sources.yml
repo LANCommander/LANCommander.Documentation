@@ -6,6 +6,13 @@ sources:
       - from: LANCommander.Documentation/
         to: Documentation/
 
+  - name: interposer
+    repo: LANCommander/LANCommander.Interposer
+    ref: main
+    paths:
+      - from: LANCommander.Interposer.Documentation/
+        to: Interposer/
+
   # Game Servers
   - name: bf1942
     repo: LANCommander/LANCommander.Servers.Battlefield1942

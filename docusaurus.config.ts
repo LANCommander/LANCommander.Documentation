@@ -93,6 +93,15 @@ const config: Config = {
       }
     ],
     [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'interposer',
+        path: 'Interposer',
+        routeBasePath: 'Interposer',
+        sidebarPath: './sidebars.interposer.ts',
+      }
+    ],
+    [
       'docusaurus-plugin-openapi-docs',
       {
         id: 'api',
@@ -140,6 +149,13 @@ const config: Config = {
           docsPluginId: 'gameServers',
         },
         {
+          type: 'docSidebar',
+          sidebarId: 'interposerSidebar',
+          position: 'left',
+          label: 'Interposer',
+          docsPluginId: 'interposer',
+        },
+        {
           href: 'https://github.com/LANCommander/LANCommander',
           label: 'GitHub',
           position: 'right',
@@ -163,6 +179,10 @@ const config: Config = {
             {
               label: 'Game Servers',
               to: '/GameServers',
+            },
+            {
+              label: 'Interposer',
+              to: '/Interposer',
             }
           ],
         },
