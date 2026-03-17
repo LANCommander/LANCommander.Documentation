@@ -32,6 +32,7 @@ html[data-theme='dark'] {
   --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
 
   --ifm-button-border-radius: 3px;
+  --ifm-button-color: #fff;
 }
 
 .footer--dark {
