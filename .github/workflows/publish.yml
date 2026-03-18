@@ -8,6 +8,11 @@ on:
   push:
     branches: [ "main" ]
 
+  # Triggers the workflow when the sync external docs sources workflow completes
+  workflow_run:
+    workflows: [ "Sync external docs sources" ]
+    types: [ completed ]
+
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
