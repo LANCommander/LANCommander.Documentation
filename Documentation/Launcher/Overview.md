@@ -1,3 +1,8 @@
+---
+sidebar_label: Overview
+sidebar_position: 1
+---
+
 # Launcher
 ## Overview
 The official LANCommander launcher is a desktop application built in ASP.NET Blazor and was designed to be easy to use and familiar. By providing a custom launcher, LANCommander is able to provide a tight integration between the server and any authenticated client.
