@@ -29,6 +29,10 @@ This compatibility shim is _not_ meant to tackle things like graphics APIs or Li
 ## Installation and Use
 Configuration and use of the Interposer is broken down on this site under the following resources:
 
-import DocCardList from '@theme/DocCardList';
-
-<DocCardList />
+- [Releases](Releases)
+- [Getting Started](GettingStarted)
+- [Logging](Logging)
+- [File Redirection](FileRedirection)
+- [Registry Emulation](RegistryEmulation)
+- [FastDL](FastDL)
+- [Borderless Fullscreen](BorderlessFullscreen)

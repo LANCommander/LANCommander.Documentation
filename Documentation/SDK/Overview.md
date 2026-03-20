@@ -15,7 +15,3 @@ The LANCommander SDK is a .NET 9 assembly that provides the heart of functionali
 - Submission of issues
 - Game lobby scanning
 - Chat client
-
-import DocCardList from '@theme/DocCardList';
-
-<DocCardList />

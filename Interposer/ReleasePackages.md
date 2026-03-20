@@ -1,5 +1,5 @@
 ---
-sidebar_label: Packages
+sidebar_label: Release Packages
 sidebar_position: 2
 ---
 
