@@ -174,7 +174,7 @@ const config: Config = {
             },
             {
               label: 'Releases',
-              to: '/Releases',
+              to: '/Category/Releases',
             },
             {
               label: 'Game Servers',
@@ -182,7 +182,7 @@ const config: Config = {
             },
             {
               label: 'Interposer',
-              to: '/Interposer',
+              to: '/Interposer/Overview',
             }
           ],
         },
