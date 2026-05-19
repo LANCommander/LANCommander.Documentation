@@ -23,7 +23,6 @@ const sidebars: SidebarsConfig = {
         {type: 'doc', id: 'FileRedirection'},
         {type: 'doc', id: 'RegistryEmulation'},
         {type: 'doc', id: 'FastDL'},
-        {type: 'doc', id: 'BorderlessFullscreen'},
         {type: 'doc', id: 'PlayerIdentity'},
       ],
     },
