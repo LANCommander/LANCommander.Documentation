@@ -43,3 +43,10 @@ html[data-theme='dark'] {
   display: flex;
   align-items: center;
 }
+
+/* Add a subtle border around doc screenshots so dark images are visible on the black background */
+article img,
+.markdown img {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+}
