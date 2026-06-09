@@ -127,7 +127,7 @@ const config: Config = {
     colorMode: {
       defaultMode: 'dark',
       disableSwitch: true,
-      respectPrefersColorScheme: true,
+      respectPrefersColorScheme: false,
     },
     navbar: {
       logo: {
