@@ -1,0 +1,39 @@
+.grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.contributor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  gap: 0.4rem;
+  transition: transform 0.15s ease;
+}
+
+.contributor:hover {
+  transform: translateY(-2px);
+  text-decoration: none;
+}
+
+.avatar {
+  border-radius: 50%;
+  border: 2px solid var(--ifm-color-emphasis-300);
+  transition: border-color 0.15s ease;
+}
+
+.contributor:hover .avatar {
+  border-color: var(--ifm-color-primary);
+}
+
+.username {
+  font-size: 0.8rem;
+  color: var(--ifm-color-emphasis-700);
+}
+
+.contributor:hover .username {
+  color: var(--ifm-color-primary);
+}
