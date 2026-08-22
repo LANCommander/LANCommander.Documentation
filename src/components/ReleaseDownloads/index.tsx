@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
+import { formatBytes, formatDate, formatNumber } from '@site/src/utils/format';
 
 interface ReleaseAsset {
   id: number;
@@ -21,18 +22,6 @@ interface Release {
 interface ReleaseDownloadsProps {
   repo?: string;
   release?: string;
-}
-
-function formatBytes(bytes: number): string {
-  if (bytes === 0) return '0 B';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
-}
-
-function formatNumber(n: number): string {
-  return n.toLocaleString();
 }
 
 export default function ReleaseDownloads({
@@ -75,11 +64,7 @@ export default function ReleaseDownloads({
     return <p>No downloadable assets found for this release.</p>;
   }
 
-  const publishedDate = new Date(data.published_at).toLocaleDateString(undefined, {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  const publishedDate = formatDate(data.published_at);
 
   return (
     <div>

@@ -157,6 +157,7 @@ const config: Config = {
           label: 'Interposer',
           docsPluginId: 'interposer',
         },
+        {to: '/Redistributables', label: 'Redistributables', position: 'left'},
         {
           href: 'https://github.com/LANCommander/LANCommander',
           label: 'GitHub',
@@ -185,6 +186,10 @@ const config: Config = {
             {
               label: 'Interposer',
               to: '/Interposer/Overview',
+            },
+            {
+              label: 'Redistributables',
+              to: '/Redistributables',
             }
           ],
         },

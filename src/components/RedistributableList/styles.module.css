@@ -1,0 +1,121 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.5rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.75rem 1.5rem 1.25rem;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 8px;
+  background: #ffffff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+[data-theme='dark'] .card {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.card:hover {
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+}
+
+.cardHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.cardTitle {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.versionBadge {
+  flex-shrink: 0;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.8rem;
+  line-height: 1;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid rgba(24, 144, 255, 0.35);
+  border-radius: 3px;
+  background: rgba(24, 144, 255, 0.1);
+  color: var(--ifm-color-primary-light);
+}
+
+.cardDescription {
+  font-size: 0.95rem;
+  color: var(--ifm-color-content-secondary);
+  line-height: 1.65;
+  margin: 0 0 1rem;
+}
+
+.warning {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  margin: 0 0 1rem;
+  padding: 0.75rem 0.9rem;
+  border-left: 3px solid #faad14;
+  border-radius: 3px;
+  background: rgba(250, 173, 20, 0.08);
+}
+
+.notes {
+  font-size: 0.8rem;
+  color: var(--ifm-color-content-secondary);
+  line-height: 1.6;
+  margin: 0 0 1rem;
+}
+
+/* Pushes the download row to the bottom so cards of differing text length stay aligned. */
+.cardFooter {
+  margin-top: auto;
+  padding-top: 0.5rem;
+}
+
+.downloadButton {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-radius: var(--ifm-button-border-radius);
+  background: var(--ifm-color-primary);
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-decoration: none;
+}
+
+.downloadButton:hover {
+  background: var(--ifm-color-primary-dark);
+  color: #fff;
+  text-decoration: none;
+}
+
+.assetMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.75rem;
+  margin-top: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--ifm-color-content-secondary);
+}
+
+.assetMeta span:not(:last-child)::after {
+  content: '·';
+  margin-left: 0.75rem;
+}
+
+.cardLinks {
+  display: flex;
+  gap: 1.25rem;
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+  font-size: 0.85rem;
+}
