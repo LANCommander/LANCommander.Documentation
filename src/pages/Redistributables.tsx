@@ -20,9 +20,9 @@ export default function Redistributables(): ReactNode {
             Redistributables
           </Heading>
           <p className={styles.subtitle}>
-            Pre-built <code>.LCX</code> packages you can import straight into your server &mdash;
-            each one a runtime, library or compatibility shim, already wired up with its detect,
-            install and configuration scripts.
+            Pre-built <code>.LCX</code> packages you can import straight into your server.
+            These runtimes, libraries, or compatiblity shims are already wired up with the
+            necessary detect, install, and configuration scripts.
           </p>
         </div>
       </header>
@@ -34,8 +34,8 @@ export default function Redistributables(): ReactNode {
               <Link to="/Server/Redistributables">Redistributables</Link> are the common runtimes
               and libraries a game needs in order to run. Building one by hand means uploading an
               archive, writing detect and install scripts, and authoring an option schema in the
-              admin UI. The packages below skip all of that: each is built automatically from its
-              upstream project, versioned to match it, and published as a single importable file.
+              admin UI. The downloads below are prepackaged redistributables built by an automatic
+              pipeline from their respective upstream project.
             </p>
             <p>
               They are produced by the{' '}
