@@ -1,0 +1,240 @@
+.header {
+  padding: 5rem 0 4rem;
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(24, 144, 255, 0.18), transparent 70%);
+}
+
+.headerInner {
+  max-width: 760px;
+}
+
+.eyebrow {
+  display: inline-block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ifm-color-primary-light);
+  margin-bottom: 1rem;
+}
+
+.title {
+  font-size: 3rem;
+  line-height: 1.15;
+  margin-bottom: 1.25rem;
+}
+
+.subtitle {
+  font-size: 1.2rem;
+  color: var(--ifm-color-content-secondary);
+  line-height: 1.65;
+  margin: 0 0 2rem;
+}
+
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+/* Infima's .button is flex-aligned globally in custom.css, which drops the centering it
+   would otherwise inherit from text-align. */
+.button {
+  justify-content: center;
+}
+
+.ghostButton {
+  color: var(--ifm-color-content);
+  border-color: var(--ifm-color-emphasis-300);
+}
+
+.ghostButton:hover {
+  color: var(--ifm-color-content);
+  border-color: var(--ifm-color-primary);
+  background: rgba(24, 144, 255, 0.08);
+}
+
+.main {
+  padding-bottom: 0;
+}
+
+.band {
+  padding: 4rem 0;
+}
+
+.bandAlt {
+  background: rgba(255, 255, 255, 0.02);
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+  border-bottom: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.prose {
+  max-width: 780px;
+}
+
+.prose p {
+  line-height: 1.75;
+}
+
+.sectionIntro {
+  max-width: 780px;
+  margin-bottom: 2.5rem;
+}
+
+.sectionIntro p {
+  color: var(--ifm-color-content-secondary);
+  line-height: 1.7;
+  margin: 0;
+}
+
+.capabilityGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2.5rem 2rem;
+}
+
+.capability {
+  border-left: 2px solid var(--ifm-color-primary);
+  padding-left: 1.25rem;
+}
+
+.capabilityTitle {
+  font-size: 1.15rem;
+  margin-bottom: 0.6rem;
+}
+
+.capabilityBody {
+  font-size: 0.95rem;
+  color: var(--ifm-color-content-secondary);
+  line-height: 1.7;
+  margin: 0;
+}
+
+.planGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 380px));
+  gap: 1.5rem;
+}
+
+.plan {
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 1.75rem;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.planPremium {
+  border-color: rgba(24, 144, 255, 0.4);
+  box-shadow: 0 0 48px rgba(24, 144, 255, 0.08);
+}
+
+.planName {
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ifm-color-content-secondary);
+  margin-bottom: 0.75rem;
+}
+
+.planPrice {
+  font-size: 2.75rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 1.75rem;
+}
+
+.planPrice span {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--ifm-color-content-secondary);
+}
+
+.planFeatures {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 2rem;
+}
+
+.planFeatures li {
+  position: relative;
+  padding-left: 1.5rem;
+  margin-bottom: 0.7rem;
+  font-size: 0.95rem;
+  color: var(--ifm-color-content-secondary);
+  line-height: 1.5;
+}
+
+.planFeatures li::before {
+  content: '';
+  position: absolute;
+  left: 0.15rem;
+  top: 0.35rem;
+  width: 0.4rem;
+  height: 0.7rem;
+  border: solid var(--ifm-color-primary);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* Keeps the call to action on the bottom edge when one plan lists more features. */
+.planButton {
+  margin-top: auto;
+}
+
+.planNote {
+  max-width: 780px;
+  margin: 2rem 0 0;
+  font-size: 0.9rem;
+  color: var(--ifm-color-content-secondary);
+  line-height: 1.7;
+}
+
+.cta {
+  padding: 5rem 0;
+  text-align: center;
+  background:
+    radial-gradient(ellipse 70% 100% at 50% 100%, rgba(24, 144, 255, 0.15), transparent 70%);
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+}
+
+.ctaTitle {
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
+}
+
+.ctaBody {
+  max-width: 560px;
+  margin: 0 auto 2rem;
+  font-size: 1.05rem;
+  color: var(--ifm-color-content-secondary);
+  line-height: 1.65;
+}
+
+.cta .button {
+  display: inline-flex;
+}
+
+@media (max-width: 996px) {
+  .header {
+    padding: 3.5rem 0 3rem;
+  }
+
+  .title {
+    font-size: 2.25rem;
+  }
+
+  .subtitle {
+    font-size: 1.05rem;
+  }
+
+  .band {
+    padding: 3rem 0;
+  }
+
+  .planGrid {
+    grid-template-columns: 1fr;
+  }
+}
