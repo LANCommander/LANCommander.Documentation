@@ -34,6 +34,7 @@ Logging:
 | `DnsRedirects` | bool | `true` | Log DNS redirect matches. Enabled by default because DNS redirects are deliberate user-configured actions. |
 | `Network` | bool | `false` | Log socket connections and DNS lookups. |
 | `DirectInput` | bool | `false` | Log DirectInput object and device creation, enumeration, and interface aliasing. At `Debug` also lists every device an enumeration found and every device the filter hid. |
+| `OsVersion` | bool | `false` | Log the Windows version reported to the game, and which API each caller used to ask for it. Each entry point is reported only the first time it is called. |
 | `Level` | choice | `Info` | Verbosity within the subsystems enabled above. One of `Info`, `Debug`, `Trace`. |
 
 ## Log Level
@@ -84,6 +85,7 @@ The `->` portion only appears when a path was changed — for example, when a fi
 | `[FILE FIND]` | `FindFirstFileW/A` was called on a path. |
 | `[DLL LOAD]` | A DLL was loaded via `LoadLibraryW/A` or `LoadLibraryExW/A`. |
 | `[FILE OVERLAY]` | A file open was served from the FastDL overlay cache instead of the game directory. |
+| `[FILEREDIRECT]` | A `FileRedirects` configuration warning: an unresolved `%TOKEN%` in a pattern, or a rule skipped for a malformed regex. Written once at startup regardless of `Logging.Files`, because a rule that never loads is otherwise invisible. |
 
 ### Redirect Diagnostics
 
@@ -91,12 +93,13 @@ Only written at `Level: Debug` or higher, and only for a subsystem that is alrea
 
 | Verb | Level | Meaning |
 |---|---|---|
-| `[REDIRECT HIT]` | Debug | A `FileRedirects` rule matched. The line shows the source path and, after the `->`, the 1-based rule number and its pattern. |
+| `[REDIRECT HIT]` | Debug | A `FileRedirects` rule matched. The line shows the source path and, after the `->`, the 1-based rule number and its pattern. When the pattern contained a `%TOKEN%`, the rule as written follows in parentheses. |
 | `[REDIRECT MISS]` | Debug | No rule matched this path. The line shows either `no rules configured` or how many rules were evaluated. |
 | `[REDIRECT RULE]` | Trace | One line per redirect pattern that was evaluated and rejected, for working out why a regex did not match. |
-| `[REG HIT]` | Debug | The key was found in the virtual registry, so the request is served from `Registry.reg`. |
+| `[REG HIT]` | Debug | The key was found in the virtual registry, so the request is served from the `.reg` store. Under `Registry.Isolated` the reason reads `served from virtual store (isolated)`, meaning the key was virtualized because isolation is on rather than because a file names it. |
 | `[REG MISS]` | Debug | The key was passed through to the real registry, with the reason — `not in virtual space`, `handle not resolvable`, or `virtual key not in store`. |
 | `[REG PARTIAL]` | Debug | The key exists in the virtual store but the requested value name does not. The game receives `ERROR_FILE_NOT_FOUND` and there is **no** fallback to the real registry. |
+| `[REG LAYER]` | Debug | One line per `.reg` file in [`Registry.Files`](/Interposer/RegistryEmulation#stacking-several-reg-files) as it loads, marked `read-only` or `writable`. An extra line reports that `Registry.Isolated` is on. |
 
 `[REG PARTIAL]` is worth calling out: it is the signature of a `Registry.reg` that has the right key but is missing a value the game reads. At `Info` level this looks like an ordinary successful `[REG READ]`.
 
@@ -119,6 +122,12 @@ Only written at `Level: Debug` or higher, and only for a subsystem that is alrea
 | Verb | Meaning |
 |---|---|
 | `[IDENTITY]` | An identity override was applied or a hooked `GetUserName`/`GetComputerName` call returned the configured override value. |
+
+### OS Version Operations
+
+| Verb | Meaning |
+|---|---|
+| `[OSVERSION]` | The version being reported to the game, written once at startup, and then once per entry point the first time the game calls it. Also carries configuration warnings, such as an unrecognized `OsVersion.Version`, which are written regardless of the flag. |
 
 ### Rich Presence Operations
 
