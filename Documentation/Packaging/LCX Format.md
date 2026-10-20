@@ -5,7 +5,7 @@ sidebar_position: 4
 
 # LCX Package Format
 
-An `.LCX` file is a standard ZIP archive containing everything needed to install and configure a game through LANCommander. The Packager generates this format automatically, but understanding its structure is useful for troubleshooting or manual editing.
+An `.LCX` file is a standard ZIP archive containing everything needed to install and configure a game through LANCommander. Packaging generates this format automatically, but understanding its structure is useful for troubleshooting or manual editing.
 
 ## Archive Structure
 
@@ -38,7 +38,7 @@ The `Archives/` directory contains one or more inner ZIP files, each identified 
 
 ### Scripts
 
-The `Scripts/` directory contains PowerShell scripts identified by GUID. The Packager generates up to two scripts:
+The `Scripts/` directory contains PowerShell scripts identified by GUID. Packaging generates up to two scripts:
 
 **Install Script** - Recreates registry keys and values captured during monitoring. If the Patch GameSpy option was enabled, it also includes an `Edit-PatchGameSpy` call. Scripts assume `$InstallDirectory` is available in the execution environment (provided by the launcher's PowerShell runtime).
 
