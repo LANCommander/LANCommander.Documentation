@@ -24,16 +24,30 @@
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
 }
 
+.cardHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
 .cardTitle {
   font-size: 1.2rem;
   font-weight: 700;
-  margin: 0 0 0.75rem;
+  margin: 0;
 }
 
-.game {
-  font-size: 0.85rem;
+.versionBadge {
+  flex-shrink: 0;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.8rem;
+  line-height: 1;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid rgba(24, 144, 255, 0.35);
+  border-radius: 3px;
+  background: rgba(24, 144, 255, 0.1);
   color: var(--ifm-color-primary-light);
-  margin: -0.5rem 0 0.75rem;
 }
 
 .cardDescription {
@@ -43,11 +57,69 @@
   margin: 0 0 1rem;
 }
 
-/* Pushes the links to the bottom so cards of differing text length stay aligned. */
+/* Pushes the downloads to the bottom so cards of differing text length stay aligned. */
+.cardFooter {
+  margin-top: auto;
+  padding-top: 0.5rem;
+}
+
+.releaseDate,
+.releaseStatus {
+  font-size: 0.8rem;
+  color: var(--ifm-color-content-secondary);
+  margin: 0 0 0.6rem;
+}
+
+.assetList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.asset {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 0.75rem;
+}
+
+/* Asset names run long (plugin names, version suffixes) and have no natural break points. */
+.assetLink {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  font-family: var(--ifm-font-family-monospace);
+  font-size: 0.85rem;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.downloadIcon {
+  flex-shrink: 0;
+  margin-right: 0.45rem;
+}
+
+.assetMeta {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+  color: var(--ifm-color-content-secondary);
+  white-space: nowrap;
+}
+
+.assetMeta span:not(:last-child)::after {
+  content: '·';
+  margin-left: 0.75rem;
+}
+
 .cardLinks {
   display: flex;
   gap: 1.25rem;
-  margin-top: auto;
+  margin-top: 1rem;
   padding-top: 0.9rem;
   border-top: 1px solid var(--ifm-color-emphasis-200);
   font-size: 0.85rem;

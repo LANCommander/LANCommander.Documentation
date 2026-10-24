@@ -13,8 +13,8 @@ const sections: {id: string; title: string; description: string; projects: Proje
     title: 'Ports',
     description: 'Games brought to new platforms, architectures, and operating systems.',
     projects: [
-      { name: 'Tony Was A Pro Skater', game: 'Tony Hawk\'s Pro Skater', description: 'A native Windows and Linux port of the first entry in the iconic series, built from a full decompilation of the original game.', repo: 'LANCommander/TonyWasAProSkater' },
-      { name: 'Hydro Thunder Online', game: 'Hydro Thunder', description: 'Previously limited to only the arcade release of the game, race with up to 16 simultaneous racers in this wet and wild arcade classic online or on your local network.', repo: 'LANCommander/HydroThunderOnline' }
+      { name: 'Tony Was A Pro Skater', description: 'A native Windows and Linux port of the first entry in the iconic series, built from a full decompilation of the original game.', repo: 'LANCommander/TonyWasAProSkater' },
+      { name: 'Hydro Thunder Online', description: 'Previously limited to only the arcade release of the game, race with up to 16 simultaneous racers in this wet and wild arcade classic online or on your local network.', repo: 'LANCommander/HydroThunderOnline' }
     ],
   },
   {
@@ -23,8 +23,8 @@ const sections: {id: string; title: string; description: string; projects: Proje
     description:
       'Fixes and enhancements for existing games, from compatibility and networking fixes to quality-of-life improvements.',
     projects: [
-      { name: 'DethKarz', game: 'DethKarz', description: 'A comprehensive set of patches for the game DethKarz introducing widescreen, high framerate support, modern controllers, network stability, and 16 player races over the network.', repo: 'LANCommander/LANCommander.Patches.DethKarz' },
-      { name: 'Plane Crazy', game: 'Plane Crazy', description: 'A comprehensive set of patches for the game Plane Crazy introducing widescreen, high framerate support, modern controllers, and 16 player races over the network.', repo: 'LANCommander/LANCommander.Patches.PlaneCrazy' }
+      { name: 'DethKarz', description: 'A comprehensive set of patches for the game DethKarz introducing widescreen, high framerate support, modern controllers, network stability, and 16 player races over the network.', repo: 'LANCommander/LANCommander.Patches.DethKarz' },
+      { name: 'Plane Crazy', description:'A comprehensive set of patches for the game Plane Crazy introducing widescreen, high framerate support, modern controllers, and 16 player races over the network.', repo: 'LANCommander/LANCommander.Patches.PlaneCrazy' }
     ],
   },
 ];
