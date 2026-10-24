@@ -20,20 +20,25 @@ Logging:
   RichPresence: false
   DnsRedirects: true
   Network: false
+  Audio: false
+  Relay: false
   Level: Info
 ```
 
 | Key | Type | Default | Description |
 |---|---|---|---|
-| `Files` | bool | `false` | Log file open and attribute operations. |
+| `Files` | bool | `false` | Log file open, attribute, enumeration, delete, move, copy and DLL-load operations. |
 | `Registry` | bool | `false` | Log registry open, read, write, and delete operations. |
 | `Downloads` | bool | `true` | Log file downloads from FastDL. |
 | `Plugins` | bool | `false` | Log plugin load, unload, error, and config registration events. |
 | `Identity` | bool | `false` | Log identity override operations (GetUserName, GetComputerName hooks). |
 | `RichPresence` | bool | `false` | Log rich presence field changes, update pushes, and clears. |
 | `DnsRedirects` | bool | `true` | Log DNS redirect matches. Enabled by default because DNS redirects are deliberate user-configured actions. |
-| `Network` | bool | `false` | Log socket connections and DNS lookups. |
+| `Network` | bool | `false` | Log socket connections, DNS lookups, and network adapter enumeration. |
 | `DirectInput` | bool | `false` | Log DirectInput object and device creation, enumeration, and interface aliasing. At `Debug` also lists every device an enumeration found and every device the filter hid. |
+| `Audio` | bool | `false` | Log audio device enumeration. At `Debug` also lists every device an enumeration found and every device the `AudioDevices` filter hid. |
+| `OsVersion` | bool | `false` | Log the Windows version reported to the game, and which API each caller used to ask for it. Each entry point is reported only the first time it is called. |
+| `Relay` | bool | `false` | Log the [network relay](/Interposer/NetworkRelay): connecting, the virtual address assigned, peers joining and leaving, and tunnelled TCP connections. At `Debug` also each loopback portal created and each emulated IPX bind; at `Trace`, every datagram relayed in either direction. |
 | `Level` | choice | `Info` | Verbosity within the subsystems enabled above. One of `Info`, `Debug`, `Trace`. |
 
 ## Log Level
@@ -76,14 +81,18 @@ The `->` portion only appears when a path was changed — for example, when a fi
 
 | Verb | Meaning |
 |---|---|
-| `[FILE READ]` | A file was opened for reading via `CreateFileW/A`. |
-| `[FILE WRITE]` | A file was opened for writing via `CreateFileW/A`. |
+| `[FILE READ]` | A file was opened for reading via `CreateFileW/A` or `CreateFile2`. |
+| `[FILE WRITE]` | A file was opened for writing via `CreateFileW/A` or `CreateFile2`. |
 | `[FILE R/W]` | A file was opened for both reading and writing. |
-| `[FILE ATTR]` | `GetFileAttributesW/A` was called on a path. |
+| `[FILE ATTR]` | `GetFileAttributesW/A` or `GetFileAttributesExW/A` was called on a path. |
 | `[FILE REDIRECT]` | A file open or attribute query was redirected by a rule. The line shows the original path and the destination path separated by `->`. |
-| `[FILE FIND]` | `FindFirstFileW/A` was called on a path. |
+| `[FILE FIND]` | `FindFirstFileW/A` or `FindFirstFileExW/A` was called on a path. |
+| `[FILE DELETE]` | A file was deleted via `DeleteFileW/A`. |
+| `[FILE MOVE]` | A file was moved or renamed via `MoveFileW/A` or `MoveFileExW/A`. |
+| `[FILE COPY]` | A file was copied via `CopyFileW/A` or `CopyFileExW/A`. |
 | `[DLL LOAD]` | A DLL was loaded via `LoadLibraryW/A` or `LoadLibraryExW/A`. |
 | `[FILE OVERLAY]` | A file open was served from the FastDL overlay cache instead of the game directory. |
+| `[FILEREDIRECT]` | A `FileRedirects` configuration warning: an unresolved `%TOKEN%` in a pattern, or a rule skipped for a malformed regex. Written once at startup regardless of `Logging.Files`, because a rule that never loads is otherwise invisible. |
 
 ### Redirect Diagnostics
 
@@ -91,12 +100,16 @@ Only written at `Level: Debug` or higher, and only for a subsystem that is alrea
 
 | Verb | Level | Meaning |
 |---|---|---|
-| `[REDIRECT HIT]` | Debug | A `FileRedirects` rule matched. The line shows the source path and, after the `->`, the 1-based rule number and its pattern. |
+| `[REDIRECT HIT]` | Debug | A `FileRedirects` rule matched. The line shows the source path and, after the `->`, the 1-based rule number and its pattern. When the pattern contained a `%TOKEN%`, the rule as written follows in parentheses. |
 | `[REDIRECT MISS]` | Debug | No rule matched this path. The line shows either `no rules configured` or how many rules were evaluated. |
 | `[REDIRECT RULE]` | Trace | One line per redirect pattern that was evaluated and rejected, for working out why a regex did not match. |
-| `[REG HIT]` | Debug | The key was found in the virtual registry, so the request is served from `Registry.reg`. |
-| `[REG MISS]` | Debug | The key was passed through to the real registry, with the reason — `not in virtual space`, `handle not resolvable`, or `virtual key not in store`. |
+| `[REG HIT]` | Debug | The key was found in the virtual registry, so the request is served from the `.reg` store. Under `Registry.Isolated` the reason reads `served from virtual store (isolated)`, meaning the key was virtualized because isolation is on rather than because a file names it. |
+| `[REG MISS]` | Debug | The key was passed through to the real registry, with the reason — `not in virtual space`, `handle not resolvable`, or `virtual key not in store`. `handle not resolvable` now means the handle came from outside the `Reg*` API entirely (a direct `ntdll` call), since any real open key is resolved through `NtQueryKey`. |
 | `[REG PARTIAL]` | Debug | The key exists in the virtual store but the requested value name does not. The game receives `ERROR_FILE_NOT_FOUND` and there is **no** fallback to the real registry. |
+| `[REG FLUSH]` | Debug | A `RegFlushKey` call. Every virtual write is persisted as it happens, so on a virtual key this only reports whether anything was still pending. |
+| `[REG NOTIFY]` | Debug | A `RegNotifyChangeKeyValue` registration. On a virtual key it is accepted and the event is never signalled — nothing outside the process can change the store. |
+| `[REG COPY]` | Debug | A `RegCopyTree` where either side is virtual, source `->` destination. The copied values are not logged individually; a tree copy would flood the log and the plugin callbacks. |
+| `[REG LAYER]` | Debug | One line per `.reg` file in [`Registry.Files`](/Interposer/RegistryEmulation#stacking-several-reg-files) as it loads, marked `read-only` or `writable`. An extra line reports that `Registry.Isolated` is on. |
 
 `[REG PARTIAL]` is worth calling out: it is the signature of a `Registry.reg` that has the right key but is missing a value the game reads. At `Info` level this looks like an ordinary successful `[REG READ]`.
 
@@ -112,13 +125,19 @@ Only written at `Level: Debug` or higher, and only for a subsystem that is alrea
 |---|---|
 | `[PLUGIN LOAD]` | A plugin DLL or ASI was loaded successfully. |
 | `[PLUGIN ERROR]` | A plugin failed to load. The line includes the Win32 error code. |
-| `[PLUGIN CONFIG]` | A plugin registered default configuration via `InterposerRegisterPluginConfig`. |
+| `[PLUGIN CONFIG]` | A plugin registered default configuration via `InterposerRegisterPluginConfig`, or wrote a value via `InterposerSetConfigString` (`Set <path>`, or the reason the write was refused). |
 
 ### Identity Operations
 
 | Verb | Meaning |
 |---|---|
 | `[IDENTITY]` | An identity override was applied or a hooked `GetUserName`/`GetComputerName` call returned the configured override value. |
+
+### OS Version Operations
+
+| Verb | Meaning |
+|---|---|
+| `[OSVERSION]` | The version being reported to the game, written once at startup, and then once per entry point the first time the game calls it. Also carries configuration warnings, such as an unrecognized `OsVersion.Version`, which are written regardless of the flag. |
 
 ### Rich Presence Operations
 
@@ -135,6 +154,35 @@ Only written at `Level: Debug` or higher, and only for a subsystem that is alrea
 |---|---|
 | `[CONNECT]` | A socket connected to a remote host. The line shows the host (or IP literal) and the port. |
 | `[DNS REDIRECT]` | A `DnsRedirects` rule matched a hostname lookup and substituted a replacement. The line shows the original and substituted hostnames separated by `->`. Gated by `Logging.DnsRedirects` (not `Logging.Network`). |
+| `[ADAPTER ENUM]` | The game enumerated network adapters. The line shows which API it used: `GetAdaptersInfo`, `GetAdaptersAddresses`, or `WSAIoctl SIO_GET_INTERFACE_LIST`. |
+| `[ADAPTER HIDE]` | A `NetworkAdapters` filter removed an adapter from an enumeration. The line shows the adapter's friendly name or description. |
+
+### Network Relay Operations
+
+Gated by `Logging.Relay`. Like the DirectInput and audio verbs these are log-only: a launcher follows the relay through its own events (`RelayStateChanged`, `RelayPeerJoined`, `RelayPeerLeft`) rather than through these lines.
+
+| Verb | Meaning |
+|---|---|
+| `[RELAY]` | Connecting, the virtual address assigned and the network joined, losing the server, and the UDP path being confirmed or lost. A refusal from the server, an unparseable `NetworkRelay` value and a virtual address that changed across a reconnect are written regardless of the flag. |
+| `[RELAY STATE]` | The connection state changed: `Connecting`, `Connected`, `Reconnecting`, `Failed` or `Disabled`. |
+| `[RELAY PEER]` | Another player joined or left the network, with their virtual address and name. |
+| `[RELAY STREAM]` | A tunnelled TCP connection opened, connected, was refused, or closed. |
+| `[RELAY PORTAL]` | A loopback portal was created to stand in for a remote endpoint. `Debug` level or higher. |
+| `[IPX BIND]` | An emulated IPX socket was bound, with its socket number and the loopback port behind it. `Debug` level or higher. |
+| `[IPX]` | An emulated IPX socket was created, or a request the emulation cannot serve was refused (SPX, an overlapped receive). |
+| `[RELAY SEND]` / `[RELAY RECV]` | One datagram relayed out or delivered in, with its size and ports. `Trace` level only. |
+
+### Audio Device Operations
+
+| Verb | Meaning |
+|---|---|
+| `[AUDIO ENUM]` | The game enumerated audio devices. The line shows which API it used and, when the filter is active, how many devices survived it. |
+| `[AUDIO FOUND]` | One device an enumeration turned up, naming the `AudioDevices` entry that kept it. `Debug` level or higher. |
+| `[AUDIO HIDE]` | An `AudioDevices` filter removed a device from an enumeration, with the reason. `Debug` level or higher. |
+| `[AUDIO OPEN]` | A `WAVE_MAPPER` open was steered to the first allowed device, or fell back to `WAVE_MAPPER` after the steered device rejected the format. |
+| `[AUDIO DEFAULT]` | `GetDefaultAudioEndpoint` returned a hidden device and a substitute was supplied, or none could be. |
+| `[AUDIO RULE]` | One `AudioDevices` entry evaluated and rejected, for working out why an entry did not match. One line per device per entry. `Trace` level only. |
+| `[AUDIO]` | Construction of the device identity table, and a warning when Core Audio could not be reached and devices can only be matched on the name their own API reports. |
 
 ### Registry Operations
 
@@ -154,7 +202,7 @@ These events are always written regardless of logging flags:
 
 | Verb | Meaning |
 |---|---|
-| `[HOOK INIT]` | A MinHook hook was installed. Shows the module, function name, and status. |
+| `[HOOK INIT]` | A MinHook hook was installed. Shows the module, function name, and status. On older Windows some lines read `not present on this version of Windows` — an API that did not exist yet (e.g. `RegGetValueW` or `CreateFile2` on XP), which nothing written for that system calls. |
 
 ## Example Log Output
 
