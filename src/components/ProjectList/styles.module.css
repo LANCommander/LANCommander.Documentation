@@ -1,0 +1,58 @@
+/* Matches the card look of the redistributables grid so the two pages read as a set. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.5rem;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  padding: 1.75rem 1.5rem 1.25rem;
+  border: 1px solid var(--ifm-color-emphasis-200);
+  border-radius: 8px;
+  background: #ffffff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+[data-theme='dark'] .card {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.card:hover {
+  border-color: var(--ifm-color-primary);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+}
+
+.cardTitle {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin: 0 0 0.75rem;
+}
+
+.game {
+  font-size: 0.85rem;
+  color: var(--ifm-color-primary-light);
+  margin: -0.5rem 0 0.75rem;
+}
+
+.cardDescription {
+  font-size: 0.95rem;
+  color: var(--ifm-color-content-secondary);
+  line-height: 1.65;
+  margin: 0 0 1rem;
+}
+
+/* Pushes the links to the bottom so cards of differing text length stay aligned. */
+.cardLinks {
+  display: flex;
+  gap: 1.25rem;
+  margin-top: auto;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--ifm-color-emphasis-200);
+  font-size: 0.85rem;
+}
+
+.empty {
+  color: var(--ifm-color-content-secondary);
+}
