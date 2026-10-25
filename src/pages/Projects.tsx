@@ -24,7 +24,8 @@ const sections: {id: string; title: string; description: string; projects: Proje
       'Fixes and enhancements for existing games, from compatibility and networking fixes to quality-of-life improvements.',
     projects: [
       { name: 'DethKarz', description: 'A comprehensive set of patches for the game DethKarz introducing widescreen, high framerate support, modern controllers, network stability, and 16 player races over the network.', repo: 'LANCommander/LANCommander.Patches.DethKarz' },
-      { name: 'Plane Crazy', description:'A comprehensive set of patches for the game Plane Crazy introducing widescreen, high framerate support, modern controllers, and 16 player races over the network.', repo: 'LANCommander/LANCommander.Patches.PlaneCrazy' }
+      { name: 'Plane Crazy', description: 'A comprehensive set of patches for the game Plane Crazy introducing widescreen, high framerate support, modern controllers, and 16 player races over the network.', repo: 'LANCommander/LANCommander.Patches.PlaneCrazy' },
+      { name: 'Motocross Madness 2', description: 'A comprehensive set of patches for the game Motocross Madness 2 introducing widescreen, high framerate support, and modern controller support.', repo: 'LANCommander/LANCommander.Patches.MotocrossMadness2' }
     ],
   },
 ];
