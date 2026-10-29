@@ -24,7 +24,11 @@ The release ZIP has an `SDK\` folder:
 ```
 SDK\
   include\
-    LANCommander.Interposer.h      the whole API, plain C
+    LANCommander.Interposer.h                the Interposer* API, plain C
+    LANCommander.Interposer.Comms.h          voice chat: common definitions
+    LANCommander.Interposer.Comms.Client.h   voice chat: the game client side
+    LANCommander.Interposer.Comms.Server.h   voice chat: the game server side
+    LANCommander.Interposer.Export.h         the export macros all of them share
   lib\
     x86\LANCommander.Interposer.lib
     x64\LANCommander.Interposer.lib
@@ -37,7 +41,16 @@ default calling convention (`/Gz`) still calls it correctly. Buffers are always
 owned by the caller, so your patch and the Interposer do not need to share a C
 runtime.
 
-The import library contains only the `Interposer*` functions. The DLL also
+The voice headers declare the `interposer_comms_*` functions: proximity and
+group voice chat over Opus, built into the same DLL. They are plain C89 and need
+nothing from `<windows.h>`, so they can be included from an old game SDK as they
+are. Voice is driven entirely by your patch -- there is nothing to set in
+`Config.yml` -- and that includes its logging: call
+`interposer_comms_set_session_logging(INTERPOSER_COMMS_LOG_INFO)` to have the
+voice library's messages written to the session log beside the Interposer's own.
+
+The import library contains only the `Interposer*` and `interposer_comms_*`
+functions. The DLL also
 exports the `version.dll` and DirectInput entry points it uses as a proxy, but
 those are left out of the `.lib`, so linking it next to `version.lib` or
 `dinput8.lib` never binds `GetFileVersionInfoW` or `DirectInput8Create` to the
@@ -142,6 +155,75 @@ void PatchInit()   // not DllMain
 
 The hooks then go in at that `LoadLibraryW`, with the timing caveat above.
 Do not call `LoadLibraryW` from your own `DllMain`.
+
+## Embedding the Interposer in your patch
+
+A patch that ships as one file, such as a `dinput.dll` proxy or an `.asi`, can
+carry the Interposer inside it instead of beside it. The patch links
+`LANCommander.Interposer.Static`, and there is no `LANCommander.Interposer.dll`
+to ship or to lose.
+
+> The release SDK does not include the static library yet. Today it builds only
+> from this repository, as the CMake target
+> `LANCommander::Interposer::Embedded`.
+
+The library is MSVC C++ built with the static CRT (`/MT`), so your patch must
+build with MSVC or clang-cl, also `/MT`. Linking it takes two settings, and the
+CMake target applies both:
+
+- **Link the whole archive** (`/WHOLEARCHIVE:LANCommander.Interposer.Static.lib`).
+  Your DLL must export every `Interposer*` function, as
+  `LANCommander.Interposer.dll` does. That is how a second Interposer in the
+  process, and the plugins in `.interposer\Plugins\`, find them. Without the
+  flag, the linker drops each object your patch never calls into, and its
+  exports go with it.
+- **Define `INTERPOSER_STATIC`**, so the header declares the functions without
+  `__declspec(dllimport)`.
+
+Then attach the Interposer from your own `DllMain`, before your patch installs
+anything:
+
+```c
+#include <LANCommander.Interposer.Embedded.h>
+
+BOOL WINAPI DllMain(HINSTANCE instance, DWORD reason, LPVOID reserved)
+{
+    if (reason == DLL_PROCESS_ATTACH)
+    {
+        DisableThreadLibraryCalls(instance);
+        InterposerEmbeddedAttach(instance);
+        PatchInstall();
+    }
+    else if (reason == DLL_PROCESS_DETACH)
+    {
+        PatchRemove();
+        InterposerEmbeddedDetach(reserved != NULL);
+    }
+
+    return TRUE;
+}
+```
+
+From then on the embedded Interposer behaves like the DLL deployed under your
+patch's file name. Its `.interposer\` folder is the one beside your patch. Its
+hooks are installed even without a `Config.yml`, and they change nothing until
+one turns a feature on. It also takes part in the coordination described below:
+if another Interposer is already loaded, `InterposerEmbeddedAttach` returns
+`FALSE`, installs nothing, and your patch's calls forward to the other copy.
+
+### A patch that is `dinput.dll` or `dinput8.dll`
+
+Your patch serves the game's `DirectInputCreateA`, `DirectInputCreateEx` or
+`DirectInput8Create` itself. Call the matching `InterposerDirectInputCreateA`,
+`InterposerDirectInputCreateEx` or `InterposerDirectInput8Create` from that
+export, and wrap the object it returns. That keeps
+`DirectInput.FixLegacyDeviceEnumeration` and `DirectInput.DeviceFilter` in
+effect. With neither configured, these functions call the real DLL in System32.
+
+Exporting these functions is also how another Interposer recognises your patch.
+An Interposer that LANCommander deployed as `version.dll` would otherwise detour
+the `DirectInputCreateA` of whatever module is named `dinput.dll`. That is your
+patch, and for a game it bridges, the call would never reach your wrapper.
 
 ## Alongside LANCommander's own deployment
 
