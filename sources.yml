@@ -13,87 +13,19 @@ sources:
       - from: LANCommander.Interposer.Documentation/
         to: Interposer/
 
-  # Game Servers
-  - name: bf1942
-    repo: LANCommander/LANCommander.Servers.Battlefield1942
-    ref: main
-    paths:
-      - from: Documentation/
-        to: GameServers/BF1942
+# Game servers are discovered automatically: every non-archived repo in the org
+# named <prefix>* that has a <from> directory on its default branch is synced
+# to <to>/<suffix>, where <suffix> is the repo name with the prefix removed.
+servers:
+  org: LANCommander
+  prefix: LANCommander.Servers.
+  from: Documentation/
+  to: GameServers/
 
-  - name: callofduty
-    repo: LANCommander/LANCommander.Servers.CallOfDuty
-    ref: main
-    paths:
-      - from: Documentation/
-        to: GameServers/CallOfDuty
+  # Repo suffix -> folder name, for servers whose docs path predates discovery
+  overrides:
+    Battlefield1942: BF1942
+    Quake3: Quake3Arena
 
-  - name: counterstrikesource
-    repo: LANCommander/LANCommander.Servers.CounterStrikeSource
-    ref: main
-    paths:
-      - from: Documentation/
-        to: GameServers/CounterStrikeSource
-
-  - name: darkmessiah
-    repo: LANCommander/LANCommander.Servers.DarkMessiah
-    ref: main
-    paths:
-      - from: Documentation/
-        to: GameServers/DarkMessiah
-
-  - name: eliteforce
-    repo: LANCommander/LANCommander.Servers.EliteForce
-    ref: main
-    paths:
-      - from: Documentation/
-        to: GameServers/EliteForce
-
-  - name: jediacademy
-    repo: LANCommander/LANCommander.Servers.JediAcademy
-    ref: main
-    paths:
-      - from: Documentation/
-        to: GameServers/JediAcademy
-
-  - name: jedioutcast
-    repo: LANCommander/LANCommander.Servers.JediOutcast
-    ref: main
-    paths:
-      - from: Documentation/
-        to: GameServers/JediOutcast
-
-  - name: portalknights
-    repo: LANCommander/LANCommander.Servers.PortalKnights
-    ref: main
-    paths:
-      - from: Documentation/
-        to: GameServers/PortalKnights
-
-  - name: quake3arena
-    repo: LANCommander/LANCommander.Servers.Quake3
-    ref: main
-    paths:
-      - from: Documentation/
-        to: GameServers/Quake3Arena
-
-  - name: rtcw
-    repo: LANCommander/LANCommander.Servers.RTCW
-    ref: main
-    paths:
-      - from: Documentation/
-        to: GameServers/RTCW
-
-  # - name: zandronum
-  #   repo: LANCommander/LANCommander.Servers.Zandronum
-  #   ref: main
-  #   paths:
-  #     - from: Documentation/
-  #       to: Documentation/GameServers/Zandronum
-
-  - name: ut2004
-    repo: LANCommander/LANCommander.Servers.UT2004
-    ref: main
-    paths:
-      - from: Documentation/
-        to: GameServers/UT2004
+  # Repo suffixes to never sync
+  exclude: []

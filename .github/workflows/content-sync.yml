@@ -25,6 +25,45 @@ jobs:
           sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
           sudo chmod +x /usr/local/bin/yq
 
+      - name: Collect sources
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          # One line per path mapping: name<TAB>repo<TAB>ref<TAB>from<TAB>to
+          yq -r '.sources[] | . as $s | .paths[] | [$s.name, $s.repo, ($s.ref // "main"), .from, .to] | @tsv' sources.yml > /tmp/sources.tsv
+
+          ORG="$(yq -r '.servers.org' sources.yml)"
+          PREFIX="$(yq -r '.servers.prefix' sources.yml)"
+          FROM="$(yq -r '.servers.from' sources.yml)"
+          TO="$(yq -r '.servers.to' sources.yml)"
+
+          gh api --paginate "orgs/$ORG/repos?type=public&per_page=100" \
+            --jq ".[] | select(.archived | not) | select(.name | startswith(\"$PREFIX\")) | [.name, .default_branch] | @tsv" \
+            | sort > /tmp/servers.tsv
+
+          while IFS=$'\t' read -r REPO_NAME REF; do
+            SUFFIX="${REPO_NAME#"$PREFIX"}"
+
+            if [ "$(SUFFIX="$SUFFIX" yq '.servers.exclude // [] | contains([strenv(SUFFIX)])' sources.yml)" = "true" ]; then
+              echo "Skipping $REPO_NAME (excluded)"
+              continue
+            fi
+
+            if ! gh api "repos/$ORG/$REPO_NAME/contents/${FROM%/}?ref=$REF" --silent 2>/dev/null; then
+              echo "Skipping $REPO_NAME (no ${FROM%/} directory on $REF)"
+              continue
+            fi
+
+            FOLDER="$(SUFFIX="$SUFFIX" yq -r '.servers.overrides[strenv(SUFFIX)] // strenv(SUFFIX)' sources.yml)"
+            NAME="$(echo "$FOLDER" | tr '[:upper:]' '[:lower:]')"
+
+            printf '%s\t%s\t%s\t%s\t%s\n' "$NAME" "$ORG/$REPO_NAME" "$REF" "$FROM" "${TO%/}/$FOLDER" >> /tmp/sources.tsv
+          done < /tmp/servers.tsv
+
+          cat /tmp/sources.tsv
+
       - name: Sync sources
         run: |
           set -euo pipefail
@@ -32,37 +71,31 @@ jobs:
           mkdir -p .external
           COMMIT_LINES=()
           TAGS_TO_CREATE=()
+          SYNCED=""
 
-          COUNT="$(yq '.sources | length' sources.yml)"
-
-          for i in $(seq 0 $((COUNT-1))); do
-            NAME="$(yq -r ".sources[$i].name" sources.yml)"
-            REPO="$(yq -r ".sources[$i].repo" sources.yml)"
-            REF="$(yq -r ".sources[$i].ref // \"main\"" sources.yml)"
-
-            echo "Syncing $NAME ($REPO@$REF)"
-
+          while IFS=$'\t' read -r NAME REPO REF FROM TO; do
             DEST=".external/$NAME"
-            rm -rf "$DEST"
-            git clone --depth 1 --branch "$REF" "https://github.com/${REPO}.git" "$DEST"
-            git -C "$DEST" fetch --tags --quiet
 
-            # Latest tag starting with v (IN THE SOURCE REPO)
-            LATEST_TAG="$(git -C "$DEST" tag --list 'v*' --sort=-v:refname | head -n 1 | tr -d '[:space:]' || true)"
-            VERSION="${LATEST_TAG:-unversioned}"
+            # Clone each source once, even if it has multiple path mappings
+            if [[ " $SYNCED " != *" $NAME "* ]]; then
+              echo "Syncing $NAME ($REPO@$REF)"
 
-            COMMIT_LINES+=("$NAME@$VERSION")
-            [ -n "$LATEST_TAG" ] && TAGS_TO_CREATE+=("$NAME/$LATEST_TAG")
+              rm -rf "$DEST"
+              git clone --depth 1 --branch "$REF" "https://github.com/${REPO}.git" "$DEST"
+              git -C "$DEST" fetch --tags --quiet
 
-            MAP_COUNT="$(yq ".sources[$i].paths | length" sources.yml)"
-            for j in $(seq 0 $((MAP_COUNT-1))); do
-              FROM="$(yq -r ".sources[$i].paths[$j].from" sources.yml)"
-              TO="$(yq -r ".sources[$i].paths[$j].to" sources.yml)"
+              # Latest tag starting with v (IN THE SOURCE REPO)
+              LATEST_TAG="$(git -C "$DEST" tag --list 'v*' --sort=-v:refname | head -n 1 | tr -d '[:space:]' || true)"
+              VERSION="${LATEST_TAG:-unversioned}"
 
-              mkdir -p "$TO"
-              rsync -av --delete "$DEST/$FROM" "$TO"
-            done
-          done
+              COMMIT_LINES+=("$NAME@$VERSION")
+              [ -n "$LATEST_TAG" ] && TAGS_TO_CREATE+=("$NAME/$LATEST_TAG")
+              SYNCED="$SYNCED $NAME"
+            fi
+
+            mkdir -p "$TO"
+            rsync -av --delete "$DEST/$FROM" "$TO"
+          done < /tmp/sources.tsv
 
           printf "%s\n" "${COMMIT_LINES[@]}" > /tmp/sources.txt
           printf "%s\n" "${TAGS_TO_CREATE[@]}" > /tmp/tags.txt
