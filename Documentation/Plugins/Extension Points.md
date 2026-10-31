@@ -162,6 +162,164 @@ public void ConfigureServices(IServiceCollection services)
 A source that returns results in pages sets `SupportsPaging`; otherwise the server asks only for
 page 0. A source that throws is shown with its error, and the other sources' results still appear.
 
+## Server engines
+
+The server runs game servers as processes on its own machine (the Local engine) or through another
+LANCommander server (Remote). A plugin can run them somewhere else, such as in containers, by
+registering an [`IServerEngineExtension`](/Plugins/API%20Reference#iserverengineextension). It is
+offered as an engine on a server's General page, and the server's start and stop buttons, autostart,
+Monitor, consoles, actions and scripts all work through it.
+
+```csharp
+public sealed class MyEngine(MyClient client) : IServerEngineExtension
+{
+    public string Id => "com.mycompany.myplugin.engine";
+    public string Name => "My Cloud";
+    public ServerEngineFeatures Features => ServerEngineFeatures.Output;
+    public Type? EditorComponent => typeof(MyServerEditor);
+
+    public Task StartAsync(ServerEngineServer server, CancellationToken cancellationToken)
+        => client.StartAsync(server.GetSettings<MyServerSettings>().InstanceId, cancellationToken);
+
+    public Task StopAsync(ServerEngineServer server, CancellationToken cancellationToken)
+        => client.StopAsync(server.GetSettings<MyServerSettings>().InstanceId, cancellationToken);
+
+    public async Task<ServerEngineStatus> GetStatusAsync(ServerEngineServer server, CancellationToken cancellationToken)
+        => await client.IsRunningAsync(server.GetSettings<MyServerSettings>().InstanceId, cancellationToken)
+            ? ServerEngineStatus.Running
+            : ServerEngineStatus.Stopped;
+}
+
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddSingleton<IServerEngineExtension, MyEngine>();
+}
+```
+
+The `Id` is stored with every server that uses the engine, so it must never change. A server whose
+engine's plugin isn't installed says so on its General page, and can't be started.
+
+### What the engine keeps about a server
+
+The server keeps a server's name, game, address, autostart, consoles and so on. Anything else the
+engine needs, such as which container a server is, goes in the server's engine settings: JSON the
+server stores with the server and hands the engine as `ServerEngineServer.Settings` on every call.
+Read it with `GetSettings<T>()`. Because the settings travel with the server, they are exported and
+imported with it, and go when it is deleted.
+
+The engine's `EditorComponent` edits them. It is shown on the General page in place of the Local
+engine's executable and process options, and gets a
+[`ServerEngineEditorContext`](/Plugins/API%20Reference#serverengineeditorcontext) as its `Context`
+parameter. Its changes join the page's other unsaved changes, and are saved or discarded with them:
+
+```razor
+@code {
+    [Parameter] public ServerEngineEditorContext Context { get; set; } = default!;
+
+    void Choose(string instanceId)
+    {
+        Context.SetSettings(new MyServerSettings { InstanceId = instanceId });
+
+        // Optionally fill in the address players connect to
+        Context.SetAddress("my-cloud.example", 27015);
+    }
+}
+```
+
+An engine can also add pages to the editors of the servers that use it, listed under its name in the
+editor's menu. Each [`ServerEngineSection`](/Plugins/API%20Reference#serverenginesection) is a
+component taking the `ServerEngineServer` as its `Server` parameter. Such a page saves its own
+changes; to change the server's engine settings, use
+[`IServerProvider`](/Plugins/API%20Reference#iserverprovider).
+
+### Running servers
+
+`StartAsync` returns once the server has started, not when it stops. The server runs the server's
+Before Start and After Stop scripts around `StartAsync` and `StopAsync`, and a start that throws is
+shown to the administrator with its message. `GetStatusAsync` is called every couple of seconds while
+anyone is looking at the server, so keep it cheap; one that throws shows the server as failed.
+
+`InitializeAsync` gives the engine an [`IServerEngineHost`](/Plugins/API%20Reference#iserverenginehost)
+to report what its servers do on their own: `ReportStatus` when one stops or fails without being asked,
+and `WriteOutput` for each line of output, shown on the server's Monitor. `ServersChangedAsync` is
+called with every server using the engine at startup and whenever one is added, changed or deleted,
+which is the time to start or stop following a server's output.
+
+`Features` declares what else the engine can do. `Output` shows the Monitor's output; `Input` lets
+commands typed on the Monitor reach `SendInputAsync`; `ProcessInfo` has the Monitor show the CPU,
+memory and uptime `GetProcessInfoAsync` samples. RCON consoles work with any engine, since the server
+sends RCON commands itself.
+
+### Consoles
+
+An engine with the `Consoles` feature can offer consoles of its own for each server, listed under the
+server's Monitor beside the process output and its log file consoles. `GetConsoles` lists them as
+[`ServerEngineConsole`](/Plugins/API%20Reference#serverengineconsole)s; it is called whenever the
+server's pages are drawn, so work the list out from the server's settings rather than asking anything.
+Only consoles in the list can be opened, and a console that can't be opened right now (the server
+isn't running, say) is better listed and failing with a message than missing.
+
+A `Log` console is read with `ReadLogAsync`: the latest `Tail` lines, then, when `Follow` is set, new
+lines as they are written until the log ends or the page is left. It is shown like the process output,
+with the server's command bar under it. A `Terminal` console is opened with `OpenTerminalAsync` at the
+size of the administrator's terminal, and returns an
+[`IServerEngineTerminal`](/Plugins/API%20Reference#iserverengineterminal): raw bytes both ways, so the
+engine's prompt, colours and full-screen programs work, and `ResizeAsync` as the window changes size.
+The session is disposed when the administrator leaves the page.
+
+```csharp
+public IReadOnlyList<ServerEngineConsole> GetConsoles(ServerEngineServer server) =>
+[
+    new("logs", "Container log", ServerEngineConsoleKind.Log),
+    new("shell", "Shell", ServerEngineConsoleKind.Terminal),
+];
+
+public async IAsyncEnumerable<ServerEngineLogLine> ReadLogAsync(ServerEngineServer server, string consoleId,
+    ServerEngineLogRequest request, [EnumeratorCancellation] CancellationToken cancellationToken)
+{
+    await foreach (var (time, text) in client.ReadLogAsync(server.GetSettings<MySettings>().Container, request.Tail, request.Follow, cancellationToken))
+        yield return new ServerEngineLogLine(text, time);
+}
+
+public async Task<IServerEngineTerminal> OpenTerminalAsync(ServerEngineServer server, string consoleId,
+    ServerEngineTerminalSize size, CancellationToken cancellationToken) =>
+    new MyShell(await client.ExecAsync(server.GetSettings<MySettings>().Container, ["/bin/sh"], size, cancellationToken));
+```
+
+Monitor pages are for administrators only. A terminal gives whoever opens it whatever the engine's
+session can do, so the server logs who opened which.
+
+### Files
+
+An engine with the `Files` feature lets administrators manage each server's files on its Files page:
+browse folders, edit text files such as its configuration, upload maps and mods, create folders and
+delete. A Local server's files are its working directory; an engine decides where its servers' files
+are, e.g. a container's data volume, and implements `ListFilesAsync`, `OpenFileAsync`,
+`WriteFileAsync`, `DeleteFileAsync` and `CreateDirectoryAsync` over them.
+
+Paths are relative to the server's files, with `/` between folders and `""` for the top. The server
+checks every path before passing it on, so none starts with `/` or has `..`, `.`, empty segments,
+backslashes or colons; still, keep a path from resolving outside the server's files, e.g. through a
+symbolic link. `ListFilesAsync` returns [`ServerEngineFile`](/Plugins/API%20Reference#serverenginefile)s
+named within the folder; any other names are left out. Writing replaces a file and creates the
+folders it is in, and deleting a folder deletes what is in it.
+
+```csharp
+public async Task<IReadOnlyList<ServerEngineFile>> ListFilesAsync(ServerEngineServer server, string path,
+    CancellationToken cancellationToken) =>
+    (await client.ListAsync(server.GetSettings<MySettings>().Volume, path, cancellationToken))
+        .Select(entry => new ServerEngineFile(entry.Name, entry.IsDirectory, entry.Size, entry.ModifiedUtc))
+        .ToList();
+
+public Task WriteFileAsync(ServerEngineServer server, string path, Stream content,
+    CancellationToken cancellationToken) =>
+    client.UploadAsync(server.GetSettings<MySettings>().Volume, path, content, cancellationToken);
+```
+
+The page waits on these calls, so give up and throw rather than hang when the files can't be reached;
+the message is shown. Text files up to 4 MB are edited in the browser and written back in the encoding
+they were read in; anything else is uploaded.
+
 ## Looking up metadata
 
 To consume the server's configured metadata providers, inject
@@ -182,6 +340,194 @@ if (results.Results.Count > 0)
 A lookup does not import or change a game.
 Missing or unavailable providers throw `InvalidOperationException`; provider errors propagate.
 Cancellation stops waiting, but a provider without cancellation support may finish in the background.
+
+## Reading user accounts
+
+A plugin that lets users sign in to something it hosts with their LANCommander account, such as a
+directory service or a game server, can look accounts up through
+[`IUserDirectory`](/Plugins/API%20Reference#iuserdirectory):
+
+```csharp
+@inject IUserDirectory Users
+
+var account = await Users.FindAsync(userName, cancellationToken);
+
+if (account is { CanSignIn: true })
+{
+    // Check a credential the plugin keeps itself
+}
+```
+
+The directory is read-only and never exposes passwords. `CanSignIn` applies the server's own sign-in
+rules, lockout and approval, so a plugin that honours it refuses the same accounts the server does.
+
+## Plugin settings
+
+A plugin keeps its settings in a YAML file of its own, `PluginData/{PluginId}/Settings.yaml` under the
+server's data directory, written the way the server's `Settings.yaml` is. Declare a plain class and
+inject [`IPluginSettings<T>`](/Plugins/API%20Reference#ipluginsettingstsettings) with it:
+
+```csharp
+public sealed class MySettings
+{
+    public bool Enabled { get; set; }
+    public int Port { get; set; } = 1234;
+}
+
+public sealed class MyService(IPluginSettings<MySettings> settings)
+{
+    public int Port => settings.Current.Port;
+
+    public void TurnOn() => settings.Update(s => s.Enabled = true);
+}
+```
+
+The server works out which plugin is asking from the assembly the settings type is declared in, so a
+plugin only ever reaches its own file. `Update` saves after a short delay, so a burst of changes is
+written once; call `FlushAsync` after changing something that must not be lost to a crash, such as a
+rotated credential. Properties the file doesn't have take their defaults, and ones the class no
+longer has are ignored. A file that can't be read gives the defaults and is left alone until the
+next save.
+
+## Storing data in the database
+
+A plugin that needs tables of its own gets them in the server's database through a context of its
+own, derived from [`PluginDbContext`](/Plugins/API%20Reference#plugindbcontext). The plugin defines
+its entities; the server owns the connection, which engine is used, the migrations, and naming.
+
+```csharp
+public sealed class TimesheetContext(DbContextOptions options) : PluginDbContext(options)
+{
+    public DbSet<Entry> Entries => Set<Entry>();
+
+    protected override void ConfigureModel(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Entry>(entry =>
+        {
+            entry.Property(e => e.Name).HasMaxLength(100);
+            entry.Property(e => e.Hours).HasConversion(PluginValueConverters.ScaledInteger(2));
+            entry.HasIndex(e => e.Name);
+        });
+    }
+}
+
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddPluginDbContext<TimesheetContext>();
+}
+```
+
+Inject the context, or `IDbContextFactory<TimesheetContext>`, where it's needed. Never call
+`Migrate()` or `EnsureCreated()`: the server applies the plugin's migrations itself, and won't hand
+the context out until they're applied.
+
+### Declaring the plugin's data
+
+A plugin with a context declares a `DataId` and its migrations assemblies in its attribute:
+
+```csharp
+[assembly: LANCommanderPlugin(typeof(TimesheetPlugin),
+    Id = "com.acme.timesheet",
+    DataId = "Timesheet",
+    MigrationAssemblies =
+    [
+        "Acme.Timesheet.Migrations.Sqlite",
+        "Acme.Timesheet.Migrations.MySql",
+        "Acme.Timesheet.Migrations.PostgreSql",
+    ])]
+```
+
+The `DataId` names the plugin's database objects, the way the server names its own:
+
+| Object | Name |
+| --- | --- |
+| Table | `Plugin_Timesheet_Entries` |
+| Primary key | `PK_Plugin_Timesheet_Entries` |
+| Index | `IX_Plugin_Timesheet_Entries_Name` |
+| Foreign key | `FK_Plugin_Timesheet_Entries_Projects_ProjectId` |
+| Migrations history | `__EFMigrationsHistory_Plugin_Timesheet` |
+
+A name the plugin sets itself, with `HasName` or `HasDatabaseName`, is prefixed the same way.
+
+The `DataId` is a PascalCase name of letters and digits, at most 24 characters. It must be unique
+among installed plugins ignoring case, since MySQL on Windows and macOS ignores case in table names,
+and it must never change once the plugin is installed, since its tables are named after it. Every
+name, prefix included, has to fit in 63 characters, PostgreSQL's limit, which leaves room for table
+names of 40 characters or so.
+
+### Migrations for every engine
+
+A LANCommander server runs on SQLite, MySQL or PostgreSQL, and the same plugin package has to install
+on all of them. A plugin with a context therefore ships one migrations assembly per engine, each
+declaring what it holds:
+
+```csharp
+[assembly: PluginMigrations(typeof(TimesheetContext), DatabaseEngine.MySql)]
+```
+
+Separate assemblies are needed because EF Core finds migrations by their context, so three sets in
+one assembly would collide. List them as `PluginAssembly` items so they're packed into the plugin's
+folder.
+
+Each migrations project generates its migrations with a design-time factory that names things the
+way the server will. Give EF the migrations assembly by name here; its design-time tooling ignores an
+`Assembly`:
+
+```csharp
+public sealed class DesignTimeFactory : IDesignTimeDbContextFactory<TimesheetContext>
+{
+    public TimesheetContext CreateDbContext(string[] args)
+    {
+        var builder = new DbContextOptionsBuilder();
+
+        builder.UseMySql("Server=design-time", new MySqlServerVersion(new Version(8, 0, 36)), options => options
+            .MigrationsAssembly(typeof(DesignTimeFactory).Assembly.GetName().Name)
+            .MigrationsHistoryTable(PluginDataIds.HistoryTable("Timesheet")));
+
+        return new TimesheetContext(builder.UsePluginIdentity("Timesheet").Options);
+    }
+}
+```
+
+Then add each migration to all three, giving every one the same name:
+
+```
+dotnet ef migrations add AddProjects --project Acme.Timesheet.Migrations.Sqlite --startup-project Acme.Timesheet.Migrations.Sqlite
+```
+
+No database is needed: the factory never connects.
+
+### What the server checks
+
+A server only ever uses one engine, but a plugin has to work on whichever one its host chooses, so
+before a plugin's startup code runs the server checks that its migrations exist for every engine:
+
+1. There is exactly one migrations assembly per engine, holding at least one migration.
+2. The engines have the same migrations, by name, in the same order.
+
+These are read from the assemblies as they are; the server needs nothing for the engines it doesn't
+use, and doesn't check that their migrations would run. The engine it does use is checked in full,
+since its migrations are about to run:
+
+3. Its migrations include a model snapshot.
+4. The context's model matches the snapshot, so no migration has been forgotten.
+5. The model keeps to the [portability rules](/Plugins/API%20Reference#portabilityrules): no
+   engine-specific column types or SQL defaults, no schemas or sequences, converters on `decimal`,
+   names of at most 63 characters, and maximum lengths of at most 191 on strings in keys and indexes.
+
+It then applies any pending migrations to the server's database, refusing one whose database already
+has migrations the plugin doesn't know (a downgrade), and checks nothing is left pending.
+
+Whether the other engines' migrations actually work is for the plugin's own tests to show, by
+applying them to a database of each kind.
+
+A plugin that fails any check stays loaded but is turned off: its `InitializeAsync` doesn't run, and
+its context throws `PluginDataUnavailableException`, carrying every error, if anything asks for it.
+**Settings → Plugins** shows why, and offers a retry once the cause is fixed. Before first-time setup
+has chosen a database, a plugin's migrations are checked and then applied once setup has one.
+
+String comparison is the one difference the checks can't see: MySQL usually ignores case, while
+PostgreSQL and SQLite don't. Store a lowercase copy of any column used for lookups.
 
 ## Server UI extensions
 
@@ -224,6 +570,7 @@ among the other plugin entries. To place it elsewhere, set `Section` to one of t
 | `Pages` | The Pages group |
 | `Settings` | The Settings group |
 | `Integrations` | The Integrations group inside Settings |
+| `Profile` | The profile menu under the signed-in user's name, alongside Change Password and Access Tokens. Shown to every signed-in user; `After` names a profile link such as `/Profile/AccessTokens` |
 
 `After` names a built-in link by its route, or a built-in group by its section:
 

@@ -77,6 +77,24 @@ Implemented by plugins that want to add PowerShell cmdlets or script modules int
 - `IEnumerable<string> GetModulePaths()`
   - Returns absolute paths to PowerShell script modules (.psm1/.psd1) shipped with the plugin that should be imported into each runspace.
 
+### IPluginSettings<TSettings>
+
+`interface` — `LANCommander.SDK.Plugins.IPluginSettings<TSettings>`
+
+A plugin's own settings, kept by the host in a YAML file of their own: `PluginData/{PluginId}/Settings.yaml` under the host's data directory. Inject it with the plugin's settings type; the host knows which plugin is asking from the assembly that type is declared in, so a plugin can only reach its own file.
+
+**Properties**
+
+- `TSettings Current { get; }`
+  - The settings, read from the file on first use, or the type's defaults when there is none.
+
+**Methods**
+
+- `void Update(Action<TSettings> mutator)`
+  - Changes the settings and schedules them to be written.
+- `Task FlushAsync(CancellationToken cancellationToken)`
+  - Writes a pending change now instead of after the debounce, for a value that must not be lost to a crash, such as a rotated credential.
+
 ### GameLobby
 
 `record` — `LANCommander.SDK.Plugins.GameLobby`
@@ -110,6 +128,10 @@ Assembly-level attribute that marks an assembly as a LANCommander plugin and dec
   - Maximum compatible host (SDK) version, inclusive. Null means no upper bound.
 - `PluginHost Hosts { get; set; }`
   - The hosts this plugin supports. Defaults to both server and launcher.
+- `string DataId { get; set; }`
+  - The name the plugin's database objects go by: with `DataId = "Timesheet"`, its tables are `Plugin_Timesheet_Entries`, its keys `PK_Plugin_Timesheet_Entries`, and its migrations history `__EFMigrationsHistory_Plugin_Timesheet`. A PascalCase name of letters and digits, at most 24 characters, unique among installed plugins ignoring case. Required only for a plugin with a database context; unlike `Id`, it must never change once the plugin has been installed, since it names the plugin's tables.
+- `string[] MigrationAssemblies { get; set; }`
+  - The plugin's migrations assemblies, by file or assembly name, one per database engine per context, shipped in the plugin's folder. Each declares what it contains with `[assembly: PluginMigrations(...)]`, which is what the host goes by.
 
 ### LoadedPlugin
 
@@ -195,10 +217,21 @@ Discovers, loads, and initializes plugins from a drop-in folder. Split into two 
 
 **Methods**
 
+- `LoadedPlugin FindByAssembly(Assembly assembly)`
+  - The loaded plugin `assembly` belongs to: its main assembly, or one loaded into its context.
+- `void Disable(string pluginId, IReadOnlyList<string> reasons)`
+  - Turns a loaded plugin off: its `InitializeAsync` isn't run, and the host shows `reasons` to administrators. The plugin stays loaded, since its services are already part of the host's container.
+- `void Enable(string pluginId)`
+  - Turns a plugin back on. Doesn't initialize it; see `InitializeAsync`.
+- `IReadOnlyList<string> GetDisabledReasons(string pluginId)`
+  - Why a plugin is turned off, or null when it isn't.
+- `bool IsInitialized(string pluginId)`
 - `void DiscoverAndConfigure(IServiceCollection services, PluginHost host, string pluginsRoot, string hostVersion, ILogger logger)`
   - Phase 1: scans `pluginsRoot` for plugins, loads each into its own `PluginLoadContext`, applies host + version gates, instantiates the entry point, and lets it register services. A failure in one plugin never aborts the batch.
 - `Task InitializeAllAsync(IServiceProvider serviceProvider, CancellationToken cancellationToken)`
   - Phase 2: invokes `InitializeAsync` for every loaded plugin, each within its own DI scope. A failure in one plugin never aborts the others.
+- `Task<bool> InitializeAsync(LoadedPlugin loaded, IServiceProvider serviceProvider, CancellationToken cancellationToken)`
+  - Invokes one plugin's `InitializeAsync` within its own DI scope, unless the plugin is turned off or has already been initialized. Returns whether it ran successfully.
 - `bool IsVersionCompatible(string hostVersion, string min, string max)`
   - Whether `hostVersion` falls within the inclusive SemVer bounds a plugin declares. A host version that cannot be parsed never blocks a plugin.
 
@@ -219,6 +252,10 @@ Parsed metadata describing a discovered plugin, derived from its `LANCommanderPl
   - The assembly the plugin was loaded from.
 - `string Directory { get; init; }`
   - Absolute path to the folder the plugin was loaded from.
+- `string DataId { get; init; }`
+  - See `DataId`.
+- `IReadOnlyList<string> MigrationAssemblies { get; init; }`
+  - See `MigrationAssemblies`.
 
 **Methods**
 
@@ -237,6 +274,24 @@ The NuGet package types a plugin package declares. Every plugin package declares
   - The package type a host searches for.
 - `IReadOnlyList<string> All(PluginHost hosts)`
   - Every package type a plugin targeting `hosts` declares.
+
+### PluginSettings<TSettings>
+
+`class` — `LANCommander.SDK.Plugins.PluginSettings<TSettings>`
+
+The host's `IPluginSettings`. Register it as an open generic singleton.
+
+**Properties**
+
+- `TSettings Current { get; }`
+
+**Methods**
+
+- `void Update(Action<TSettings> mutator)`
+- `Task FlushAsync(CancellationToken cancellationToken)`
+- `ValueTask DisposeAsync()`
+- `void Dispose()`
+  - For containers disposed synchronously.
 
 ### PluginHost
 
@@ -676,9 +731,9 @@ Looks up game metadata through the server's configured providers. Provided by th
 
 Manages the multiplayer modes of games. Provided by the server; inject it into a scoped plugin service or page.
 
-### IOwnedRecordProvider`1
+### IOwnedRecordProvider<TInfo>
 
-`interface` — `LANCommander.Server.Plugins.IOwnedRecordProvider`1`
+`interface` — `LANCommander.Server.Plugins.IOwnedRecordProvider<TInfo>`
 
 Lists and manages records that belong to a game, redistributable, tool or server: actions, scripts, save paths and the like. Each provider accepts only the owners its records can have, and throws `ArgumentException` for any other.
 
@@ -695,6 +750,19 @@ Lists and manages records that belong to a game, redistributable, tool or server
 - `Task DeleteAsync(Guid id, CancellationToken cancellationToken)`
   - Deletes a record. Does nothing when there is no such record.
 
+### IPackageExporter
+
+`interface` — `LANCommander.Server.Plugins.IPackageExporter`
+
+Exports games, redistributables, servers and tools as LCX packages through the server's own export pipeline, the same one the export dialog uses. Provided by the server; inject it into a scoped plugin service or page.
+
+**Methods**
+
+- `Task<PackageContents> DescribeAsync(ImportExportRecordType recordType, Guid recordId, CancellationToken cancellationToken)`
+  - Describes what a package of the record would hold: the record itself and every child record the export dialog would offer, such as archives, media, scripts and keys. Nothing is written.
+- `Task ExportAsync(ImportExportRecordType recordType, Guid recordId, Stream output, IEnumerable<Guid> excludedItemIds, CancellationToken cancellationToken)`
+  - Writes an LCX package of the record to a stream, with every child record except those excluded.
+
 ### IPackageImporter
 
 `interface` — `LANCommander.Server.Plugins.IPackageImporter`
@@ -707,6 +775,41 @@ Imports LCX packages through the server's own import pipeline, the same one the 
   - Imports every record in an LCX file the server can already read.
 - `Task<PackageImportResult> ImportStreamAsync(Stream package, Guid? storageLocationId, ManifestType? manifestType, IProgress<long> copyProgress, CancellationToken cancellationToken)`
   - Copies an LCX package stream to the server's temporary storage, then imports every record in it.
+
+### IRecurringJobHandler
+
+`interface` — `LANCommander.Server.Plugins.IRecurringJobHandler`
+
+Does the work of recurring jobs added through `IRecurringJobScheduler`. Register an implementation in `IPlugin.ConfigureServices`; it's resolved from a fresh scope for every run.
+
+**Properties**
+
+- `string Name { get; }`
+  - Identifies the handler to `AddOrUpdate`; start it with the plugin's id.
+
+**Methods**
+
+- `Task ExecuteAsync(string argument, CancellationToken cancellationToken)`
+  - Runs the job.
+
+### IRecurringJobScheduler
+
+`interface` — `LANCommander.Server.Plugins.IRecurringJobScheduler`
+
+Runs plugin work on a cron schedule through the server's background job processor, alongside the server's own recurring jobs and on its dashboard. Provided by the server; inject it anywhere, it's a singleton.
+
+**Methods**
+
+- `void AddOrUpdate(string jobId, string handler, string argument, string cronExpression, TimeZoneInfo timeZone)`
+  - Adds a recurring job, or changes the one with the same id.
+- `void Remove(string jobId)`
+  - Removes a recurring job. Does nothing when there's no such job.
+- `void Trigger(string jobId)`
+  - Runs a recurring job now, outside its schedule. Does nothing when there's no such job.
+- `RecurringJobInfo Get(string jobId)`
+  - The plugin recurring job with the given id, or null.
+- `bool IsValidCronExpression(string cronExpression)`
+  - Whether `cronExpression` is one `AddOrUpdate` accepts.
 
 ### IRedistributableProvider
 
@@ -757,6 +860,88 @@ Contributes HTTP endpoints to the server's API, for example for a launcher or an
 
 - `void MapEndpoints(IEndpointRouteBuilder endpoints)`
   - Maps the endpoints. `endpoints` is already rooted at `/api/Plugins/{RoutePrefix}` and carries the `Access` requirement, so routes are given relative to it. Called once, when the server starts.
+
+### IServerEngineExtension
+
+`interface` — `LANCommander.Server.Plugins.IServerEngineExtension`
+
+Runs game servers somewhere other than as a process on the LANCommander server's machine, such as in a container. Each engine is offered on a server's General page alongside the built-in Local and Remote engines. Register an implementation in `IPlugin.ConfigureServices`.
+
+**Properties**
+
+- `string Id { get; }`
+  - Identifies the engine. Stored with every server that uses it, so it must never change, e.g. `com.mycompany.myplugin.engine`.
+- `string Name { get; }`
+  - The engine's name, as offered on a server's General page.
+- `ServerEngineFeatures Features { get; }`
+  - What the engine can do beyond starting and stopping a server.
+- `Type EditorComponent { get; }`
+  - A Razor component shown on a server's General page while the engine is selected, in place of the Local engine's executable, arguments and process options. It takes a `ServerEngineEditorContext` as its `Context` parameter, and is saved with the rest of the page. Null shows nothing.
+- `IReadOnlyList<ServerEngineSection> Sections { get; }`
+  - Further pages of a server's editor, listed under the engine's name in its menu once the server has been saved with this engine.
+
+**Methods**
+
+- `Task InitializeAsync(IServerEngineHost host, CancellationToken cancellationToken)`
+  - Called once, when the server starts, before any other call. `host` is how the engine reports what its servers do; keep it.
+- `Task ServersChangedAsync(IReadOnlyList<ServerEngineServer> servers, CancellationToken cancellationToken)`
+  - Called with every server using the engine when the engine is initialized and whenever one is added, changed or deleted, e.g. to follow the output of those that are running.
+- `Task StartAsync(ServerEngineServer server, CancellationToken cancellationToken)`
+  - Starts a server, returning once it has started rather than when it stops. Throw to report that it could not be started; the server shows the message.
+- `Task StopAsync(ServerEngineServer server, CancellationToken cancellationToken)`
+  - Stops a server, returning once it has stopped.
+- `Task<ServerEngineStatus> GetStatusAsync(ServerEngineServer server, CancellationToken cancellationToken)`
+  - Whether a server is running. Called every couple of seconds while anyone is looking at the server, so it should be cheap.
+- `Task<ServerEngineProcessInfo> GetProcessInfoAsync(ServerEngineServer server, CancellationToken cancellationToken)`
+  - Samples a running server's usage, for `ProcessInfo`. Null when it isn't running or can't be sampled.
+- `bool CanSendInput(ServerEngineServer server)`
+  - Whether `SendInputAsync` can deliver a line to the server now, for `Input`.
+- `Task<bool> SendInputAsync(ServerEngineServer server, string line, CancellationToken cancellationToken)`
+  - Writes a line to the server's input. Returns false if that isn't possible.
+- `IReadOnlyList<ServerEngineConsole> GetConsoles(ServerEngineServer server)`
+  - The consoles the engine offers for a server, for `Consoles`, e.g. its log and a shell. Called whenever the server's pages are drawn, so it should be cheap and shouldn't reach out to anything; work it out from the server's settings. A console that can't be opened right now, e.g. because the server isn't running, should still be listed, and fail to open with a message saying why.
+- `IAsyncEnumerable<ServerEngineLogLine> ReadLogAsync(ServerEngineServer server, string consoleId, ServerEngineLogRequest request, CancellationToken cancellationToken)`
+  - Reads one of the server's `Log` consoles, oldest line first. Throw to report that it can't be read; the server shows the message.
+- `Task<IServerEngineTerminal> OpenTerminalAsync(ServerEngineServer server, string consoleId, ServerEngineTerminalSize size, CancellationToken cancellationToken)`
+  - Opens one of the server's `Terminal` consoles at the administrator's terminal's size. Throw to report that it can't be opened; the server shows the message.
+- `Task<IReadOnlyList<ServerEngineFile>> ListFilesAsync(ServerEngineServer server, string path, CancellationToken cancellationToken)`
+  - Lists a folder of the server's files, for `Files`. Throw `DirectoryNotFoundException` when there is no such folder.
+- `Task<Stream> OpenFileAsync(ServerEngineServer server, string path, CancellationToken cancellationToken)`
+  - Opens one of the server's files to read. The server disposes the stream. Throw `FileNotFoundException` when there is no such file.
+- `Task WriteFileAsync(ServerEngineServer server, string path, Stream content, CancellationToken cancellationToken)`
+  - Writes one of the server's files from `content`, replacing it if it exists and creating any folders it is in that don't.
+- `Task DeleteFileAsync(ServerEngineServer server, string path, CancellationToken cancellationToken)`
+  - Deletes one of the server's files, or a folder and everything in it.
+- `Task CreateDirectoryAsync(ServerEngineServer server, string path, CancellationToken cancellationToken)`
+  - Creates a folder among the server's files, and any it is in that don't exist.
+
+### IServerEngineHost
+
+`interface` — `LANCommander.Server.Plugins.IServerEngineHost`
+
+How an `IServerEngineExtension` reports what its servers do. Thread safe.
+
+**Methods**
+
+- `void ReportStatus(Guid serverId, ServerEngineStatus status, string error)`
+  - Reports that a server's status changed on its own, e.g. it exited, so those watching it see so at once rather than at their next look. Changes made through the engine's own methods needn't be reported.
+- `void WriteOutput(Guid serverId, string line)`
+  - Reports a line of a server's output, for `Output`.
+
+### IServerEngineTerminal
+
+`interface` — `LANCommander.Server.Plugins.IServerEngineTerminal`
+
+An open `Terminal` console. The server reads it and writes to it at the same time, from different threads; it is disposed when the administrator leaves the page, which should end the session.
+
+**Methods**
+
+- `ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken)`
+  - Reads what the terminal writes, as UTF-8 that may split a character across reads. Returns 0 once the session has ended, e.g. the shell exited.
+- `ValueTask WriteAsync(ReadOnlyMemory<byte> input, CancellationToken cancellationToken)`
+  - Writes what the administrator typed or pasted, as UTF-8, escape sequences included.
+- `Task ResizeAsync(ServerEngineTerminalSize size, CancellationToken cancellationToken)`
+  - The administrator's terminal changed size. Engines that can't resize a session after opening it can ignore this.
 
 ### IServerNavigationExtension
 
@@ -878,6 +1063,21 @@ Lists and manages the server's tools. Provided by the server; inject it into a s
   - The ids of the games a tool is linked to.
 - `Task SetGamesAsync(Guid toolId, IEnumerable<Guid> gameIds, CancellationToken cancellationToken)`
   - Replaces the games a tool is linked to. An empty list unlinks them all.
+
+### IUserDirectory
+
+`interface` — `LANCommander.Server.Plugins.IUserDirectory`
+
+Reads the server's user accounts, for example to let users sign in to something the plugin hosts with their LANCommander account. Provided by the server; inject it into a scoped plugin service or page.
+
+**Methods**
+
+- `Task<IReadOnlyList<UserAccount>> GetAsync(CancellationToken cancellationToken)`
+  - Every account on the server, ordered by user name.
+- `Task<UserAccount> GetAsync(Guid id, CancellationToken cancellationToken)`
+  - The account with the given id, or null.
+- `Task<UserAccount> FindAsync(string userName, CancellationToken cancellationToken)`
+  - The account with the given user name, compared case-insensitively, or null.
 
 ### ActionInfo
 
@@ -1136,6 +1336,25 @@ A way a game can be played with others.
 - `RecordOwner Owner { get; init; }`
   - Set by the server; ignored when writing.
 
+### PackageContents
+
+`record` — `LANCommander.Server.Plugins.PackageContents`
+
+What a package of a record would hold, from `DescribeAsync`.
+
+**Properties**
+
+- `Guid RecordId { get; init; }`
+  - Id of the record.
+- `ImportExportRecordType RecordType { get; init; }`
+  - The kind of record.
+- `string Name { get; init; }`
+  - The record's title or name.
+- `DateTime UpdatedOn { get; init; }`
+  - When the record itself was last changed.
+- `IReadOnlyList<PackageItem> Items { get; init; }`
+  - The child records a package would carry.
+
 ### PackageImportResult
 
 `record` — `LANCommander.Server.Plugins.PackageImportResult`
@@ -1150,6 +1369,25 @@ The outcome of an import run by `IPackageImporter`.
   - The kind of record the package held.
 - `int ImportedCount { get; init; }`
   - Number of records imported.
+
+### PackageItem
+
+`record` — `LANCommander.Server.Plugins.PackageItem`
+
+A child record a package would carry.
+
+**Properties**
+
+- `Guid Id { get; init; }`
+  - Id of the child record.
+- `ImportExportRecordType Type { get; init; }`
+  - The kind of child record, e.g. `Archive`.
+- `string Name { get; init; }`
+  - A name to show for it.
+- `long Size { get; init; }`
+  - Bytes of file the package would carry for it, such as an archive's; 0 for none.
+- `DateTime? UpdatedOn { get; init; }`
+  - When it was last changed, or null for records that don't track it.
 
 ### PluginAccessAttribute
 
@@ -1181,6 +1419,23 @@ Describes who may reach a plugin-contributed surface, such as a page or a naviga
   - Allows members of any of the supplied server-defined roles. Administrators also qualify.
 - `bool IsSatisfiedBy(ClaimsPrincipal user)`
   - Determines whether `user` satisfies this policy.
+
+### RecurringJobInfo
+
+`record` — `LANCommander.Server.Plugins.RecurringJobInfo`
+
+A plugin recurring job, from `Get`.
+
+**Properties**
+
+- `string JobId { get; init; }`
+  - The id it was added with.
+- `string CronExpression { get; init; }`
+  - Its schedule.
+- `DateTime? NextExecution { get; init; }`
+  - When it next runs, in UTC, if it's scheduled to.
+- `DateTime? LastExecution { get; init; }`
+  - When it last ran, in UTC, if it has since the server started.
 
 ### RedistributableInfo
 
@@ -1265,6 +1520,156 @@ A log file or RCON connection the LANCommander server shows for a game server.
 - `string Password { get; init; }`
   - For an RCON console: the password.
 
+### ServerEngineConsole
+
+`record` — `LANCommander.Server.Plugins.ServerEngineConsole`
+
+A console an `IServerEngineExtension` offers for one of its servers, listed under the server's Monitor beside the process output and the server's own log file consoles.
+
+**Properties**
+
+- `string Id { get; init; }`
+  - Identifies the console among the server's, e.g. `logs` or `shell`. It appears in the console's address, so keep it short; it is passed back to the engine when the console is opened.
+- `string Name { get; init; }`
+  - The console's name in the menu and the page's header.
+- `ServerEngineConsoleKind Kind { get; init; }`
+  - How the console is shown, which decides which of the engine's methods opens it.
+
+### ServerEngineEditorContext
+
+`class` — `LANCommander.Server.Plugins.ServerEngineEditorContext`
+
+The server an `EditorComponent` edits, on its General page. Changes are kept with the page's other unsaved changes and saved with them.
+
+**Properties**
+
+- `ServerEngineServer Server { get; }`
+  - The server, with the page's unsaved changes. Its id is empty while it is being added.
+- `bool IsNew { get; }`
+  - Whether the server is being added, so has no id yet.
+
+**Methods**
+
+- `T GetSettings<T>()`
+  - The engine's settings for the server; see `GetSettings`.
+- `void SetSettings<T>(T settings)`
+  - Replaces the engine's settings for the server.
+- `void SetAddress(string host, int? port)`
+  - Sets the address players connect to, e.g. from a port the engine publishes. The administrator can still change it.
+
+### ServerEngineFile
+
+`record` — `LANCommander.Server.Plugins.ServerEngineFile`
+
+A file or folder among a server's files, for `Files`; see `ListFilesAsync`.
+
+**Properties**
+
+- `string Name { get; init; }`
+  - The entry's name within the folder listed, without any path.
+- `bool IsDirectory { get; init; }`
+  - Whether it is a folder.
+- `long? Size { get; init; }`
+  - A file's length in bytes, where the engine knows it.
+- `DateTime? LastModified { get; init; }`
+  - When it was last written, in UTC, where the engine knows.
+
+### ServerEngineLogLine
+
+`record` — `LANCommander.Server.Plugins.ServerEngineLogLine`
+
+A line of a `Log` console.
+
+**Properties**
+
+- `string Text { get; init; }`
+  - The line, without its line ending.
+- `DateTime? Timestamp { get; init; }`
+  - When it was written, in UTC, where the engine knows; otherwise when it was read.
+- `bool IsError { get; init; }`
+  - Whether it came from the server's error output, so is shown as an error.
+
+### ServerEngineLogRequest
+
+`record` — `LANCommander.Server.Plugins.ServerEngineLogRequest`
+
+What of a `Log` console to read.
+
+**Properties**
+
+- `int? Tail { get; init; }`
+  - How many of the latest lines to read back before following; null for all of them.
+- `bool Follow { get; init; }`
+  - Whether to go on returning lines as they are written, until the reader cancels or the log ends, e.g. because the server stopped. When false, return what is there and finish.
+
+### ServerEngineProcessInfo
+
+`record` — `LANCommander.Server.Plugins.ServerEngineProcessInfo`
+
+A sample of a running server's usage. Any member may be null when the engine can't tell.
+
+**Properties**
+
+- `int? Pid { get; init; }`
+  - The server's process id, where there is one the administrator would recognize.
+- `DateTime? StartTime { get; init; }`
+  - When the server started, in UTC.
+- `double? CpuPercent { get; init; }`
+  - CPU use as a share of the whole machine, from 0 to 100.
+- `long? MemoryBytes { get; init; }`
+  - Memory in use.
+
+### ServerEngineSection
+
+`record` — `LANCommander.Server.Plugins.ServerEngineSection`
+
+A page of a server's editor added by an `IServerEngineExtension`.
+
+**Properties**
+
+- `string Slug { get; init; }`
+  - The page's address under the server, `/Servers/{id}/Engine/{Slug}`: letters, digits and `-`, unique within the engine.
+- `string Title { get; init; }`
+  - The page's name in the menu and its title.
+- `Type Component { get; init; }`
+  - A Razor component rendered as the page, taking a `ServerEngineServer` as its `Server` parameter.
+
+### ServerEngineServer
+
+`record` — `LANCommander.Server.Plugins.ServerEngineServer`
+
+A game server as an `IServerEngineExtension` sees it.
+
+**Properties**
+
+- `Guid Id { get; init; }`
+- `string Name { get; init; }`
+- `Guid? GameId { get; init; }`
+  - The game the server is for, if any.
+- `string Host { get; init; }`
+  - The address players connect to.
+- `int Port { get; init; }`
+- `string Settings { get; init; }`
+  - What the engine keeps about the server, as JSON, or empty when it has kept nothing yet. Read it with `GetSettings`.
+
+**Methods**
+
+- `T GetSettings<T>()`
+  - `Settings` read as `T`, or a new `T` when there are none or they can't be read.
+
+### ServerEngineSettings
+
+`class` — `LANCommander.Server.Plugins.ServerEngineSettings`
+
+Reads and writes `Settings`.
+
+**Methods**
+
+- `T Read<T>(string json)`
+  - Reads settings JSON as `T`; a new one when it is empty or can't be read.
+- `string Write<T>(T settings)`
+  - Writes settings as JSON.
+
 ### ServerHttpPathInfo
 
 `record` — `LANCommander.Server.Plugins.ServerHttpPathInfo`
@@ -1303,10 +1708,10 @@ A dedicated game server the LANCommander server runs and monitors.
 - `string OnStopScriptPath { get; init; }`
 - `bool UseShellExecute { get; init; }`
 - `ProcessTerminationMethod ProcessTerminationMethod { get; init; }`
-- `Guid? DockerHostId { get; init; }`
-  - For `Docker`: the Docker host.
-- `string ContainerId { get; init; }`
-  - For `Docker`: the container.
+- `string EngineExtensionId { get; init; }`
+  - For `Extension`: the engine's `Id`.
+- `string EngineSettings { get; init; }`
+  - For `Extension`: the engine's settings for the server, as JSON.
 - `Guid? RemoteHostId { get; init; }`
   - For `Remote`: the LANCommander server that manages it.
 - `Guid? RemoteServerId { get; init; }`
@@ -1384,6 +1789,27 @@ A program players can install alongside the games that use it, such as a mod man
 - `DateTime UpdatedOn { get; init; }`
   - Set by the server; ignored when writing.
 
+### UserAccount
+
+`record` — `LANCommander.Server.Plugins.UserAccount`
+
+A user account on the server.
+
+**Properties**
+
+- `Guid Id { get; init; }`
+- `string UserName { get; init; }`
+- `string Alias { get; init; }`
+  - The name the user chose to be shown by, if any.
+- `string Email { get; init; }`
+- `IReadOnlyList<string> Roles { get; init; }`
+  - The names of the roles the user is in.
+- `bool IsAdministrator { get; init; }`
+  - Whether the user is in the built-in administrator role.
+- `bool CanSignIn { get; init; }`
+  - Whether the server would let the user sign in right now: the account is not locked out and, where the server requires it, has been approved by an administrator. Read from the account each time, so a lockout or a withdrawn approval takes effect immediately.
+- `DateTime CreatedOn { get; init; }`
+
 ### RecordOwner
 
 `struct` — `LANCommander.Server.Plugins.RecordOwner`
@@ -1406,6 +1832,17 @@ The record a child record (an action, script, save path, archive…) belongs to.
 - `RecordOwner Redistributable(Guid id)`
 - `RecordOwner Tool(Guid id)`
 - `RecordOwner Server(Guid id)`
+
+### ServerEngineTerminalSize
+
+`struct` — `LANCommander.Server.Plugins.ServerEngineTerminalSize`
+
+A terminal's size, in characters.
+
+**Properties**
+
+- `int Columns { get; init; }`
+- `int Rows { get; init; }`
 
 ### GameLinkKind
 
@@ -1450,6 +1887,46 @@ The kinds of record that own actions, scripts and the other child records.
 | `Tool` = `2` |  |
 | `Server` = `3` |  |
 
+### ServerEngineConsoleKind
+
+`enum` — `LANCommander.Server.Plugins.ServerEngineConsoleKind`
+
+How a `ServerEngineConsole` is shown.
+
+| Value | Description |
+| --- | --- |
+| `Log` = `0` | Lines the server has written, read back and then followed, e.g. a container's log, shown like the process output with the server's command bar under it. Opened with `ReadLogAsync`. |
+| `Terminal` = `1` | An interactive terminal, e.g. the server's own console or a shell beside it. Keystrokes go to the engine as they are typed and what it writes back is drawn as a terminal draws it, escape sequences included. Opened with `OpenTerminalAsync`. |
+
+### ServerEngineFeatures
+
+`enum` — `LANCommander.Server.Plugins.ServerEngineFeatures`
+
+What an `IServerEngineExtension` can do beyond starting and stopping a server.
+
+| Value | Description |
+| --- | --- |
+| `None` = `0` |  |
+| `Output` = `1` | The engine reports its servers' output through `WriteOutput`, shown on their Monitor page. |
+| `Input` = `2` | The engine can write lines to its servers' input, from their Monitor page. |
+| `ProcessInfo` = `4` | The engine samples its servers' CPU and memory use and uptime. |
+| `Consoles` = `8` | The engine offers consoles of its own for its servers, e.g. a log or a terminal, listed under their Monitor; see `GetConsoles`. |
+| `Files` = `16` | The engine can list, read, write and delete its servers' files, e.g. their configuration, so administrators can edit and upload them on the server's Files page; see `ListFilesAsync`. |
+
+### ServerEngineStatus
+
+`enum` — `LANCommander.Server.Plugins.ServerEngineStatus`
+
+Whether a game server is running.
+
+| Value | Description |
+| --- | --- |
+| `Stopped` = `0` |  |
+| `Starting` = `1` |  |
+| `Running` = `2` |  |
+| `Stopping` = `3` |  |
+| `Error` = `4` | The server failed, e.g. it exited on its own with an error. |
+
 ### ServerHostEngine
 
 `enum` — `LANCommander.Server.Plugins.ServerHostEngine`
@@ -1459,8 +1936,8 @@ Where a game server runs.
 | Value | Description |
 | --- | --- |
 | `Local` = `0` | A process on the LANCommander server's machine. |
-| `Docker` = `1` | A Docker container. |
 | `Remote` = `2` | A server managed by another LANCommander server. |
+| `Extension` = `3` | A plugin's `IServerEngineExtension`, named by `EngineExtensionId`. |
 
 ### TaxonomyKind
 
@@ -1477,4 +1954,170 @@ The kinds of taxonomy record: named records games are linked to.
 | `Genre` = `4` |  |
 | `Platform` = `5` |  |
 | `Tag` = `6` |  |
+
+## `LANCommander.Server.Plugins.Data`
+
+### PluginDataIds
+
+`class` — `LANCommander.Server.Plugins.Data.PluginDataIds`
+
+The rules for a plugin's `DataId`, and the names it gives the plugin's database objects: tables `Plugin_Timesheet_Entries`, keys `PK_Plugin_Timesheet_Entries`, indexes `IX_Plugin_Timesheet_Entries_Name`, and history `__EFMigrationsHistory_Plugin_Timesheet`.
+
+**Methods**
+
+- `string TablePrefix(string dataId)`
+  - The prefix of the plugin's table names.
+- `string HistoryTable(string dataId)`
+  - The plugin's own migrations history table.
+- `string Prefixed(string dataId, string name)`
+  - Puts the plugin's prefix into the name of a table, key, index or foreign key, once. A name of EF Core's usual shape keeps its marker first, as the server's own do (`PK_Entries` becomes `PK_Plugin_Timesheet_Entries`); any other name is prefixed at the start.
+- `string Validate(string dataId)`
+  - Why `dataId` can't be used, or null when it can.
+
+### PluginDataServiceCollectionExtensions
+
+`class` — `LANCommander.Server.Plugins.Data.PluginDataServiceCollectionExtensions`
+
+**Methods**
+
+- `IServiceCollection AddPluginDbContext<TContext>(IServiceCollection services)`
+  - Asks the host to register `TContext`, scoped, along with an `IDbContextFactory<TContext>`. Call it from `IPlugin.ConfigureServices`.
+
+### PluginDataState
+
+`record` — `LANCommander.Server.Plugins.Data.PluginDataState`
+
+A plugin context's status, with every error that put it there.
+
+**Properties**
+
+- `PluginDataStatus Status { get; init; }`
+- `IReadOnlyList<string> Errors { get; init; }`
+
+### PluginDataUnavailableException
+
+`class` — `LANCommander.Server.Plugins.Data.PluginDataUnavailableException`
+
+A plugin context was asked for, or tried to connect, before it was ready. Carries the context's state and every error, so the plugin's log shows exactly which check failed.
+
+**Properties**
+
+- `Type ContextType { get; }`
+- `PluginDataState State { get; }`
+
+### PluginDbContext
+
+`class` — `LANCommander.Server.Plugins.Data.PluginDbContext`
+
+The base of a plugin's own `DbContext`. The plugin defines its entities in `ConfigureModel`; the host owns everything else: the connection, the engine, the migrations history table, and naming every table, key and index after the plugin, as in `Plugin_Timesheet_Entries` and `PK_Plugin_Timesheet_Entries`.
+
+**Properties**
+
+- `string DataId { get; }`
+  - The plugin's `DataId`, which prefixes its database objects.
+
+### PluginDbContextOptionsExtensions
+
+`class` — `LANCommander.Server.Plugins.Data.PluginDbContextOptionsExtensions`
+
+**Methods**
+
+- `DbContextOptionsBuilder UsePluginIdentity(DbContextOptionsBuilder builder, string dataId)`
+  - Gives a `PluginDbContext` the plugin's `DataId`. Called by the host, and by design-time factories that generate a plugin's migrations, so the migrations name things the way the host will.
+
+### PluginDbContextRegistration
+
+`record` — `LANCommander.Server.Plugins.Data.PluginDbContextRegistration`
+
+A plugin's request for the host to register one of its contexts.
+
+**Properties**
+
+- `Type ContextType { get; init; }`
+
+### PluginIdentityExtension
+
+`class` — `LANCommander.Server.Plugins.Data.PluginIdentityExtension`
+
+Carries a plugin's `DataId` into its context's options.
+
+**Properties**
+
+- `string DataId { get; }`
+- `DbContextOptionsExtensionInfo Info { get; }`
+
+**Methods**
+
+- `void ApplyServices(IServiceCollection services)`
+- `void Validate(IDbContextOptions options)`
+
+### PluginMigrationsAttribute
+
+`attribute` — `LANCommander.Server.Plugins.Data.PluginMigrationsAttribute`
+
+Declares that an assembly holds the migrations of one `PluginDbContext` for one database engine. A plugin ships one such assembly per engine per context, each with its own model snapshot, and lists them in `[LANCommanderPlugin(MigrationAssemblies = ...)]`.
+
+**Properties**
+
+- `Type ContextType { get; }`
+- `DatabaseEngine Engine { get; }`
+
+### PluginModelConventions
+
+`class` — `LANCommander.Server.Plugins.Data.PluginModelConventions`
+
+What the host does to every plugin model after the plugin has configured it: names its tables, keys and indexes after the plugin (see `Prefixed`), and gives date and time properties converters that behave the same on every engine.
+
+**Methods**
+
+- `void Apply(ModelBuilder modelBuilder, string dataId)`
+
+### PluginValueConverters
+
+`class` — `LANCommander.Server.Plugins.Data.PluginValueConverters`
+
+Converters that make types behave the same on every engine. The host applies `UtcDateTime` and `UtcTicks` to every `DateTime` and `DateTimeOffset` property itself; a `Decimal` property needs `ScaledInteger` applied by the plugin, since only the plugin knows its scale.
+
+**Methods**
+
+- `ValueConverter<decimal, long> ScaledInteger(int scale)`
+  - Stores `Decimal` as a whole number of 10^-`scale` units, which every engine can compare and order; SQLite otherwise stores decimals as text. Values are rounded to `scale` places.
+
+### PortabilityRules
+
+`class` — `LANCommander.Server.Plugins.Data.PortabilityRules`
+
+What a plugin model may not do, so it behaves the same on SQLite, MySQL and PostgreSQL. The host checks the model as its own engine builds it, and refuses a plugin that breaks any of these.
+
+**Methods**
+
+- `IReadOnlyList<string> Check(IModel model, DatabaseEngine engine, string dataId)`
+  - Every way `model` breaks the rules, as messages naming the entity and property.
+
+### DatabaseEngine
+
+`enum` — `LANCommander.Server.Plugins.Data.DatabaseEngine`
+
+The database engines a LANCommander server can run on.
+
+| Value | Description |
+| --- | --- |
+| `Sqlite` = `0` |  |
+| `MySql` = `1` |  |
+| `PostgreSql` = `2` |  |
+
+### PluginDataStatus
+
+`enum` — `LANCommander.Server.Plugins.Data.PluginDataStatus`
+
+Where a plugin context is in being made ready for use.
+
+| Value | Description |
+| --- | --- |
+| `Unvalidated` = `0` | Not checked yet. |
+| `Invalid` = `1` | Its migrations or model failed a check; the plugin is turned off. |
+| `Validated` = `2` | Its migrations passed every check, but haven't been applied, e.g. while the server has no database yet. |
+| `Migrating` = `3` | Its migrations are being applied. |
+| `MigrationFailed` = `4` | Applying its migrations failed; the plugin is turned off until an administrator retries. |
+| `Ready` = `5` | Checked and migrated; the context can be used. |
 
