@@ -750,6 +750,19 @@ Lists and manages records that belong to a game, redistributable, tool or server
 - `Task DeleteAsync(Guid id, CancellationToken cancellationToken)`
   - Deletes a record. Does nothing when there is no such record.
 
+### IPackageExporter
+
+`interface` — `LANCommander.Server.Plugins.IPackageExporter`
+
+Exports games, redistributables, servers and tools as LCX packages through the server's own export pipeline, the same one the export dialog uses. Provided by the server; inject it into a scoped plugin service or page.
+
+**Methods**
+
+- `Task<PackageContents> DescribeAsync(ImportExportRecordType recordType, Guid recordId, CancellationToken cancellationToken)`
+  - Describes what a package of the record would hold: the record itself and every child record the export dialog would offer, such as archives, media, scripts and keys. Nothing is written.
+- `Task ExportAsync(ImportExportRecordType recordType, Guid recordId, Stream output, IEnumerable<Guid> excludedItemIds, CancellationToken cancellationToken)`
+  - Writes an LCX package of the record to a stream, with every child record except those excluded.
+
 ### IPackageImporter
 
 `interface` — `LANCommander.Server.Plugins.IPackageImporter`
@@ -762,6 +775,41 @@ Imports LCX packages through the server's own import pipeline, the same one the 
   - Imports every record in an LCX file the server can already read.
 - `Task<PackageImportResult> ImportStreamAsync(Stream package, Guid? storageLocationId, ManifestType? manifestType, IProgress<long> copyProgress, CancellationToken cancellationToken)`
   - Copies an LCX package stream to the server's temporary storage, then imports every record in it.
+
+### IRecurringJobHandler
+
+`interface` — `LANCommander.Server.Plugins.IRecurringJobHandler`
+
+Does the work of recurring jobs added through `IRecurringJobScheduler`. Register an implementation in `IPlugin.ConfigureServices`; it's resolved from a fresh scope for every run.
+
+**Properties**
+
+- `string Name { get; }`
+  - Identifies the handler to `AddOrUpdate`; start it with the plugin's id.
+
+**Methods**
+
+- `Task ExecuteAsync(string argument, CancellationToken cancellationToken)`
+  - Runs the job.
+
+### IRecurringJobScheduler
+
+`interface` — `LANCommander.Server.Plugins.IRecurringJobScheduler`
+
+Runs plugin work on a cron schedule through the server's background job processor, alongside the server's own recurring jobs and on its dashboard. Provided by the server; inject it anywhere, it's a singleton.
+
+**Methods**
+
+- `void AddOrUpdate(string jobId, string handler, string argument, string cronExpression, TimeZoneInfo timeZone)`
+  - Adds a recurring job, or changes the one with the same id.
+- `void Remove(string jobId)`
+  - Removes a recurring job. Does nothing when there's no such job.
+- `void Trigger(string jobId)`
+  - Runs a recurring job now, outside its schedule. Does nothing when there's no such job.
+- `RecurringJobInfo Get(string jobId)`
+  - The plugin recurring job with the given id, or null.
+- `bool IsValidCronExpression(string cronExpression)`
+  - Whether `cronExpression` is one `AddOrUpdate` accepts.
 
 ### IRedistributableProvider
 
@@ -1257,6 +1305,25 @@ A way a game can be played with others.
 - `RecordOwner Owner { get; init; }`
   - Set by the server; ignored when writing.
 
+### PackageContents
+
+`record` — `LANCommander.Server.Plugins.PackageContents`
+
+What a package of a record would hold, from `DescribeAsync`.
+
+**Properties**
+
+- `Guid RecordId { get; init; }`
+  - Id of the record.
+- `ImportExportRecordType RecordType { get; init; }`
+  - The kind of record.
+- `string Name { get; init; }`
+  - The record's title or name.
+- `DateTime UpdatedOn { get; init; }`
+  - When the record itself was last changed.
+- `IReadOnlyList<PackageItem> Items { get; init; }`
+  - The child records a package would carry.
+
 ### PackageImportResult
 
 `record` — `LANCommander.Server.Plugins.PackageImportResult`
@@ -1271,6 +1338,25 @@ The outcome of an import run by `IPackageImporter`.
   - The kind of record the package held.
 - `int ImportedCount { get; init; }`
   - Number of records imported.
+
+### PackageItem
+
+`record` — `LANCommander.Server.Plugins.PackageItem`
+
+A child record a package would carry.
+
+**Properties**
+
+- `Guid Id { get; init; }`
+  - Id of the child record.
+- `ImportExportRecordType Type { get; init; }`
+  - The kind of child record, e.g. `Archive`.
+- `string Name { get; init; }`
+  - A name to show for it.
+- `long Size { get; init; }`
+  - Bytes of file the package would carry for it, such as an archive's; 0 for none.
+- `DateTime? UpdatedOn { get; init; }`
+  - When it was last changed, or null for records that don't track it.
 
 ### PluginAccessAttribute
 
@@ -1302,6 +1388,23 @@ Describes who may reach a plugin-contributed surface, such as a page or a naviga
   - Allows members of any of the supplied server-defined roles. Administrators also qualify.
 - `bool IsSatisfiedBy(ClaimsPrincipal user)`
   - Determines whether `user` satisfies this policy.
+
+### RecurringJobInfo
+
+`record` — `LANCommander.Server.Plugins.RecurringJobInfo`
+
+A plugin recurring job, from `Get`.
+
+**Properties**
+
+- `string JobId { get; init; }`
+  - The id it was added with.
+- `string CronExpression { get; init; }`
+  - Its schedule.
+- `DateTime? NextExecution { get; init; }`
+  - When it next runs, in UTC, if it's scheduled to.
+- `DateTime? LastExecution { get; init; }`
+  - When it last ran, in UTC, if it has since the server started.
 
 ### RedistributableInfo
 
