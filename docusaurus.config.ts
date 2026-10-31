@@ -47,6 +47,60 @@ async function releasesDescendingSidebarItemsGenerator({
   return items;
 }
 
+const GAME_SERVERS_DIR = path.join(__dirname, 'GameServers');
+
+// Each server's docs are synced from its own repo into GameServers/<Server>, where
+// the Docker page is the one people come for. That page becomes the server's landing
+// page, served from /GameServers/<Server> instead of /GameServers/<Server>/Docker; a
+// server with no Docker page but only one doc gets the same treatment for that doc.
+function gameServerLandingDoc(server: string): string | null {
+  const dir = path.join(GAME_SERVERS_DIR, server);
+  if (!fs.existsSync(dir) || !fs.statSync(dir).isDirectory()) return null;
+
+  const docs = fs.readdirSync(dir).filter((file) => /\.mdx?$/i.test(file));
+  const docker = docs.find((file) => /^docker\.mdx?$/i.test(file));
+
+  return docker ?? (docs.length === 1 ? docs[0] : null);
+}
+
+function gameServerLandingDocId(server: string): string | null {
+  const landing = gameServerLandingDoc(server);
+  return landing ? `${server}/${landing.replace(/\.mdx?$/i, '')}` : null;
+}
+
+// Collapses each server's category onto its landing page: a server with just the one
+// doc becomes a single link, and one with more keeps the rest as children of a
+// category that opens the landing page. Servers sort by display name, not folder name.
+async function gameServersSidebarItemsGenerator({
+  defaultSidebarItemsGenerator,
+  ...args
+}: any) {
+  const items: any[] = await defaultSidebarItemsGenerator(args);
+
+  const servers = items
+    .filter((item) => item.type === 'category')
+    .map((category) => {
+      const firstDoc = category.items.find((item: any) => item.type === 'doc');
+      if (!firstDoc) return category;
+
+      const server = String(firstDoc.id).split('/')[0];
+      const landingId = gameServerLandingDocId(server);
+
+      if (!landingId) {
+        return {...category, link: {type: 'generated-index', slug: `/${server}`}};
+      }
+
+      const rest = category.items.filter((item: any) => item.id !== landingId);
+
+      return rest.length === 0
+        ? {type: 'doc', id: landingId, label: category.label}
+        : {...category, link: {type: 'doc', id: landingId}, items: rest};
+    })
+    .sort((a, b) => a.label.localeCompare(b.label));
+
+  return [...items.filter((item) => item.type !== 'category'), ...servers];
+}
+
 function joinUrl(...parts: string[]): string {
   const joined = parts
     .map((part) => part.replace(/^\/+|\/+$/g, ''))
@@ -135,6 +189,31 @@ const config: Config = {
 
   onBrokenLinks: 'warn',
 
+  markdown: {
+    // Synced docs can't carry site-specific front matter, so a game server's landing
+    // page gets its slug here. See gameServerLandingDoc.
+    async parseFrontMatter(params) {
+      const result = await params.defaultParseFrontMatter(params);
+      const [server, file, ...nested] = path
+        .relative(GAME_SERVERS_DIR, params.filePath)
+        .split(path.sep);
+
+      if (
+        server !== '..' &&
+        file &&
+        nested.length === 0 &&
+        result.frontMatter.slug === undefined &&
+        gameServerLandingDoc(server) === file
+      ) {
+        result.frontMatter.slug = `/${server}`;
+        // Labels it "Docker", which would override the server name the sidebar gives it.
+        delete result.frontMatter.sidebar_label;
+      }
+
+      return result;
+    },
+  },
+
   // Even if you don't use internationalization, you can use this field to set
   // useful metadata like html lang. For example, if your site is Chinese, you
   // may want to replace "en" with "zh-Hans".
@@ -163,6 +242,7 @@ const config: Config = {
         path: 'GameServers',
         routeBasePath: 'GameServers',
         sidebarPath: './sidebars.gameServers.ts',
+        sidebarItemsGenerator: gameServersSidebarItemsGenerator,
       }
     ],
     [
