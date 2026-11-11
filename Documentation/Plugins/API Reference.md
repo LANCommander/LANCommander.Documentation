@@ -1327,6 +1327,31 @@ Raised after a game or add-on is saved.
 - `Guid GameId { get; init; }`
 - `string Title { get; init; }`
 
+### GameVersionCreatedEvent
+
+`record` — `LANCommander.Server.Plugins.GameVersionCreatedEvent`
+
+Raised after a game version is added, by an administrator, a plugin, or an upload that needed a version for its archive. `Version` can be empty for a placeholder version that an archive fills in later, which raises `GameVersionUpdatedEvent`.
+
+**Properties**
+
+- `Guid VersionId { get; init; }`
+- `Guid GameId { get; init; }`
+- `string Version { get; init; }`
+- `bool Published { get; init; }`
+
+### GameVersionDeletedEvent
+
+`record` — `LANCommander.Server.Plugins.GameVersionDeletedEvent`
+
+Raised after a game version is deleted.
+
+**Properties**
+
+- `Guid VersionId { get; init; }`
+- `Guid GameId { get; init; }`
+- `string Version { get; init; }`
+
 ### GameVersionInfo
 
 `record` — `LANCommander.Server.Plugins.GameVersionInfo`
@@ -1351,6 +1376,19 @@ A version of a game. Each version has its own archive, actions, scripts, save pa
 - `DateTime CreatedOn { get; init; }`
   - Set by the server; ignored when writing.
 
+### GameVersionPublishedChangedEvent
+
+`record` — `LANCommander.Server.Plugins.GameVersionPublishedChangedEvent`
+
+Raised when a game version is published or unpublished. Launchers are offered a game's newest published version. Adding a version after an unpublished one publishes the earlier one, which raises this too.
+
+**Properties**
+
+- `Guid VersionId { get; init; }`
+- `Guid GameId { get; init; }`
+- `string Version { get; init; }`
+- `bool Published { get; init; }`
+
 ### GameVersionRedistributableInfo
 
 `record` — `LANCommander.Server.Plugins.GameVersionRedistributableInfo`
@@ -1361,6 +1399,18 @@ A redistributable required by a game version, with that version's option values 
 
 - `RedistributableInfo Redistributable { get; init; }`
 - `string Options { get; init; }`
+
+### GameVersionUpdatedEvent
+
+`record` — `LANCommander.Server.Plugins.GameVersionUpdatedEvent`
+
+Raised after a game version is saved, or an archive is linked to it.
+
+**Properties**
+
+- `Guid VersionId { get; init; }`
+- `Guid GameId { get; init; }`
+- `string Version { get; init; }`
 
 ### IssueCreatedEvent
 
@@ -1387,6 +1437,24 @@ Raised after an issue is marked resolved.
 - `Guid GameId { get; init; }`
 - `Guid ResolvedByUserId { get; init; }`
 
+### KeyAllocatedEvent
+
+`record` — `LANCommander.Server.Plugins.KeyAllocatedEvent`
+
+Raised after a game key is allocated to a user or a machine, by a launcher requesting one or an administrator assigning it. A launcher swapping keys raises `KeyReleasedEvent` for the key it held first.
+
+**Properties**
+
+- `Guid KeyId { get; init; }`
+- `Guid GameId { get; init; }`
+- `KeyAllocationMethod Method { get; init; }`
+- `Guid? UserId { get; init; }`
+  - Set when `Method` is `UserAccount`.
+- `string MacAddress { get; init; }`
+  - Set when `Method` is `MacAddress`.
+- `int AvailableKeys { get; init; }`
+  - How many of the game's keys are still unallocated afterwards.
+
 ### KeyInfo
 
 `record` — `LANCommander.Server.Plugins.KeyInfo`
@@ -1411,6 +1479,43 @@ A CD key for a game, handed out to players as the game's allocation method decid
   - Set by the server; ignored when writing.
 - `RecordOwner Owner { get; init; }`
   - Set by the server; ignored when writing.
+
+### KeyReleasedEvent
+
+`record` — `LANCommander.Server.Plugins.KeyReleasedEvent`
+
+Raised after a game key is released. The previous holder is given when there was one.
+
+**Properties**
+
+- `Guid KeyId { get; init; }`
+- `Guid GameId { get; init; }`
+- `Guid? UserId { get; init; }`
+- `string MacAddress { get; init; }`
+- `int AvailableKeys { get; init; }`
+  - How many of the game's keys are unallocated afterwards.
+
+### LibraryGameAddedEvent
+
+`record` — `LANCommander.Server.Plugins.LibraryGameAddedEvent`
+
+Raised for each game added to a user's library. Adding an add-on adds its base game too, which raises its own event.
+
+**Properties**
+
+- `Guid UserId { get; init; }`
+- `Guid GameId { get; init; }`
+
+### LibraryGameRemovedEvent
+
+`record` — `LANCommander.Server.Plugins.LibraryGameRemovedEvent`
+
+Raised for each game removed from a user's library. Removing a game removes its hidden add-ons and any add-ons the user picked, which each raise their own event.
+
+**Properties**
+
+- `Guid UserId { get; init; }`
+- `Guid GameId { get; init; }`
 
 ### MatchCreatedEvent
 
@@ -1468,6 +1573,34 @@ Raised when a match participant is linked to a LANCommander user.
 - `Guid UserId { get; init; }`
 - `MatchParticipantLinkSource LinkSource { get; init; }`
 
+### MediaCreatedEvent
+
+`record` — `LANCommander.Server.Plugins.MediaCreatedEvent`
+
+Raised after a media item is added: a game's artwork, a user's avatar or an image on a page. Its file is written first when one is uploaded or downloaded with it.
+
+**Properties**
+
+- `Guid MediaId { get; init; }`
+- `Guid? GameId { get; init; }`
+  - The game the media belongs to, if any.
+- `Guid? UserId { get; init; }`
+  - The user the media belongs to, such as for an avatar, if any.
+- `MediaType Type { get; init; }`
+
+### MediaDeletedEvent
+
+`record` — `LANCommander.Server.Plugins.MediaDeletedEvent`
+
+Raised after a media item and its file are deleted, including when its game is.
+
+**Properties**
+
+- `Guid MediaId { get; init; }`
+- `Guid? GameId { get; init; }`
+- `Guid? UserId { get; init; }`
+- `MediaType Type { get; init; }`
+
 ### MediaGrabberItem
 
 `record` — `LANCommander.Server.Plugins.MediaGrabberItem`
@@ -1516,6 +1649,19 @@ An image, video or other file shown for a game, such as its cover or icon.
   - Set by the server; ignored when writing.
 - `Guid GameId { get; init; }`
   - Set by the server; ignored when writing.
+
+### MediaUpdatedEvent
+
+`record` — `LANCommander.Server.Plugins.MediaUpdatedEvent`
+
+Raised after a media item is saved, including when its file is replaced and when it is reordered among the game's media.
+
+**Properties**
+
+- `Guid MediaId { get; init; }`
+- `Guid? GameId { get; init; }`
+- `Guid? UserId { get; init; }`
+- `MediaType Type { get; init; }`
 
 ### MetadataGame
 
@@ -1687,6 +1833,18 @@ Describes who may reach a plugin-contributed surface, such as a page or a naviga
 - `bool IsSatisfiedBy(ClaimsPrincipal user)`
   - Determines whether `user` satisfies this policy.
 
+### PresenceChangedEvent
+
+`record` — `LANCommander.Server.Plugins.PresenceChangedEvent`
+
+Raised when what other players see of a player changes: they start or stop playing, their game reports new activity, or they change their presence visibility. Games can report activity often, so keep handlers quick. A player who isn't playing can be reported as not playing again, for example when they change their visibility.
+
+**Properties**
+
+- `Guid UserId { get; init; }`
+- `UserPresence Presence { get; init; }`
+  - What everyone may see under the player's `PresenceVisibility`: no activity when it is `GameOnly`. Null when the player isn't shown as playing, because they stopped or their visibility is `Hidden`.
+
 ### RecurringJobInfo
 
 `record` — `LANCommander.Server.Plugins.RecurringJobInfo`
@@ -1703,6 +1861,28 @@ A plugin recurring job, from `Get`.
   - When it next runs, in UTC, if it's scheduled to.
 - `DateTime? LastExecution { get; init; }`
   - When it last ran, in UTC, if it has since the server started.
+
+### RedistributableCreatedEvent
+
+`record` — `LANCommander.Server.Plugins.RedistributableCreatedEvent`
+
+Raised after a redistributable is added, by hand, by an import or through `IRedistributableProvider`.
+
+**Properties**
+
+- `Guid RedistributableId { get; init; }`
+- `string Name { get; init; }`
+
+### RedistributableDeletedEvent
+
+`record` — `LANCommander.Server.Plugins.RedistributableDeletedEvent`
+
+Raised after a redistributable is deleted.
+
+**Properties**
+
+- `Guid RedistributableId { get; init; }`
+- `string Name { get; init; }`
 
 ### RedistributableInfo
 
@@ -1726,6 +1906,29 @@ Software games need installed alongside them, such as a runtime. Games link to r
 - `DateTime UpdatedOn { get; init; }`
   - Set by the server; ignored when writing.
 
+### RedistributableUpdatedEvent
+
+`record` — `LANCommander.Server.Plugins.RedistributableUpdatedEvent`
+
+Raised after a redistributable is saved.
+
+**Properties**
+
+- `Guid RedistributableId { get; init; }`
+- `string Name { get; init; }`
+
+### SaveDeletedEvent
+
+`record` — `LANCommander.Server.Plugins.SaveDeletedEvent`
+
+Raised after a cloud save and its file are deleted: by its owner, an administrator, or the server making room under a user's save count or storage limits.
+
+**Properties**
+
+- `Guid SaveId { get; init; }`
+- `Guid? GameId { get; init; }`
+- `Guid UserId { get; init; }`
+
 ### SavePathInfo
 
 `record` — `LANCommander.Server.Plugins.SavePathInfo`
@@ -1744,6 +1947,20 @@ A file, folder or registry path where a game keeps its saves.
   - The platforms the path applies to.
 - `RecordOwner Owner { get; init; }`
   - Set by the server; ignored when writing.
+
+### SaveUploadedEvent
+
+`record` — `LANCommander.Server.Plugins.SaveUploadedEvent`
+
+Raised after a cloud save is uploaded and its file written.
+
+**Properties**
+
+- `Guid SaveId { get; init; }`
+- `Guid GameId { get; init; }`
+- `Guid UserId { get; init; }`
+- `long Size { get; init; }`
+- `RuntimePlatform Platforms { get; init; }`
 
 ### ScriptInfo
 
@@ -1786,6 +2003,30 @@ A log file or RCON connection the LANCommander server shows for a game server.
   - For an RCON console: the port to connect to.
 - `string Password { get; init; }`
   - For an RCON console: the password.
+
+### ServerCreatedEvent
+
+`record` — `LANCommander.Server.Plugins.ServerCreatedEvent`
+
+Raised after a game server is added, by hand, by an import or through `IServerProvider`. Whether it is running is reported by `ServerStatusChangedEvent`.
+
+**Properties**
+
+- `Guid ServerId { get; init; }`
+- `Guid? GameId { get; init; }`
+- `string Name { get; init; }`
+
+### ServerDeletedEvent
+
+`record` — `LANCommander.Server.Plugins.ServerDeletedEvent`
+
+Raised after a game server is deleted.
+
+**Properties**
+
+- `Guid ServerId { get; init; }`
+- `Guid? GameId { get; init; }`
+- `string Name { get; init; }`
 
 ### ServerEngineConsole
 
@@ -2053,6 +2294,18 @@ Raised when a game server's status changes, whichever engine runs it, including 
 - `string Error { get; init; }`
   - Why the server failed, when `Status` is `Error`.
 
+### ServerUpdatedEvent
+
+`record` — `LANCommander.Server.Plugins.ServerUpdatedEvent`
+
+Raised after a game server's settings are saved.
+
+**Properties**
+
+- `Guid ServerId { get; init; }`
+- `Guid? GameId { get; init; }`
+- `string Name { get; init; }`
+
 ### StorageLocationInfo
 
 `record` — `LANCommander.Server.Plugins.StorageLocationInfo`
@@ -2082,6 +2335,28 @@ A taxonomy record on the server.
 - `TaxonomyKind Kind { get; init; }`
 - `string Name { get; init; }`
 
+### ToolCreatedEvent
+
+`record` — `LANCommander.Server.Plugins.ToolCreatedEvent`
+
+Raised after a tool is added, by hand, by an import or through `IToolProvider`.
+
+**Properties**
+
+- `Guid ToolId { get; init; }`
+- `string Name { get; init; }`
+
+### ToolDeletedEvent
+
+`record` — `LANCommander.Server.Plugins.ToolDeletedEvent`
+
+Raised after a tool is deleted.
+
+**Properties**
+
+- `Guid ToolId { get; init; }`
+- `string Name { get; init; }`
+
 ### ToolInfo
 
 `record` — `LANCommander.Server.Plugins.ToolInfo`
@@ -2101,6 +2376,17 @@ A program players can install alongside the games that use it, such as a mod man
   - Set by the server; ignored when writing.
 - `DateTime UpdatedOn { get; init; }`
   - Set by the server; ignored when writing.
+
+### ToolUpdatedEvent
+
+`record` — `LANCommander.Server.Plugins.ToolUpdatedEvent`
+
+Raised after a tool is saved.
+
+**Properties**
+
+- `Guid ToolId { get; init; }`
+- `string Name { get; init; }`
 
 ### UserAccount
 
@@ -2152,6 +2438,28 @@ Raised after a user account is created, by registration, an administrator or an 
 `record` — `LANCommander.Server.Plugins.UserDeletedEvent`
 
 Raised after a user account is deleted.
+
+**Properties**
+
+- `Guid UserId { get; init; }`
+- `string UserName { get; init; }`
+
+### UserSignedInEvent
+
+`record` — `LANCommander.Server.Plugins.UserSignedInEvent`
+
+Raised when a user signs in to the server: a launcher or API client getting a token, or a browser sign-in, including through an external provider. Refreshing a token doesn't raise it.
+
+**Properties**
+
+- `Guid UserId { get; init; }`
+- `string UserName { get; init; }`
+
+### UserSignedOutEvent
+
+`record` — `LANCommander.Server.Plugins.UserSignedOutEvent`
+
+Raised when a client reports a sign-out or a browser session is signed out. Tokens already issued to the user stay valid until they expire.
 
 **Properties**
 
