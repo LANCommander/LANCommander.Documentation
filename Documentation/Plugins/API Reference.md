@@ -1015,6 +1015,8 @@ How an `IServerEngineExtension` reports what its servers do. Thread safe.
   - Reports that a server's status changed on its own, e.g. it exited, so those watching it see so at once rather than at their next look. Changes made through the engine's own methods needn't be reported.
 - `void WriteOutput(Guid serverId, string line)`
   - Reports a line of a server's output, for `Output`.
+- `void ReportAddress(Guid serverId, string host, int? port)`
+  - Reports where players connect to a server, for `Address`. Players are sent it in place of whichever of the server's Host and Port the administrator left blank; those they set override it. It is kept only while the LANCommander server runs, so report it whenever it may have changed and for servers already running when `ServersChangedAsync` is first called. Reporting the same address again does nothing.
 
 ### IServerEngineTerminal
 
@@ -2063,7 +2065,7 @@ The server an `EditorComponent` edits, on its General page. Changes are kept wit
 - `void SetSettings<T>(T settings)`
   - Replaces the engine's settings for the server.
 - `void SetAddress(string host, int? port)`
-  - Sets the address players connect to, e.g. from a port the engine publishes. The administrator can still change it.
+  - Sets the address players connect to, e.g. from a port the engine publishes. The administrator can still change it. What is set here overrides what the engine reports with `ReportAddress`, so an engine that reports addresses should leave the parts it reports unset.
 
 ### ServerEngineFile
 
@@ -2155,8 +2157,9 @@ A game server as an `IServerEngineExtension` sees it.
 - `Guid? GameId { get; init; }`
   - The game the server is for, if any.
 - `string Host { get; init; }`
-  - The address players connect to.
+  - The host players connect to, as the administrator set it; empty when they left it to what the engine reports. Not what the engine reported.
 - `int Port { get; init; }`
+  - The port players connect to, as the administrator set it; 0 when they left it to what the engine reports.
 - `string Settings { get; init; }`
   - What the engine keeps about the server, as JSON, or empty when it has kept nothing yet. Read it with `GetSettings`.
 
@@ -2568,6 +2571,7 @@ What an `IServerEngineExtension` can do beyond starting and stopping a server.
 | `ProcessInfo` = `4` | The engine samples its servers' CPU and memory use and uptime. |
 | `Consoles` = `8` | The engine offers consoles of its own for its servers, e.g. a log or a terminal, listed under their Monitor; see `GetConsoles`. |
 | `Files` = `16` | The engine can list, read, write and delete its servers' files, e.g. their configuration, so administrators can edit and upload them on the server's Files page; see `ListFilesAsync`. |
+| `Address` = `32` | The engine knows where players connect to its servers, e.g. the address and port a container was given, and reports it through `ReportAddress`. Players are sent the reported host and port wherever the administrator left the server's own blank; what they enter there overrides the report. |
 
 ### ServerEngineStatus
 
