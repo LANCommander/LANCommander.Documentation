@@ -113,6 +113,49 @@ rcon_password "your_rcon_password"
 
 The map cycle is `valve/mapcycle.txt`.
 
+## Match Statistics
+
+The server can report the matches played on it to LANCommander, with the
+[LANCommander match statistics plugin for Metamod](https://github.com/LANCommander/LANCommander.MatchStatistics.MetaMod).
+The plugin and [Metamod-P](https://github.com/Bots-United/metamod-p) are built into the image. The plugin is turned on
+when `MATCH_STATS_SERVER_URL` and `MATCH_STATS_TOKEN` are set, and is then copied into the game directory (`-game` in
+`START_ARGS`, otherwise `GAME_MOD`) on every start. It reports Counter-Strike 1.6 and Condition Zero, Day of Defeat,
+Team Fortress Classic, Natural Selection, Half-Life deathmatch and Ricochet in detail, and the kills and frags of any
+other Metamod game.
+
+On every start, with the statistics on:
+
+- If `liblist.gam`'s `gamedll_linux` doesn't load Metamod yet, Metamod-P is installed in `<game>/addons/metamod/` and
+  `gamedll_linux` is pointed at it. Metamod's `config.ini` loads the original game DLL. A Metamod you installed
+  yourself (for AMX Mod X, say) is kept, and the plugin is added to its `plugins.ini`.
+- The plugin goes into `<game>/addons/lancommander/dlls/`, and its line into `addons/metamod/plugins.ini`.
+- The settings are written to `<game>/addons/lancommander/lancommander.cfg` as `lc_*` cvars. Metamod runs it at startup
+  from `addons/metamod/exec.cfg`.
+
+Turned off, all of this is undone and `liblist.gam` loads the game DLL directly again. Metamod stays if `plugins.ini`
+still loads other plugins.
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `MATCH_STATS_ENABLED` | `auto`: on when `MATCH_STATS_SERVER_URL` and `MATCH_STATS_TOKEN` are set. `true` or `false` | `auto` |
+| `MATCH_STATS_SERVER_URL` | The LANCommander server, e.g. `http://lancommander.lan:1337`. Only `http://` works on Linux | *(empty)* |
+| `MATCH_STATS_TOKEN` | A LANCommander access token with the **Report matches** scope (Profile → Access Tokens). It isn't written to any file | *(empty)* |
+| `MATCH_STATS_GAME_ID` | The game's id in LANCommander | *(empty)* |
+| `MATCH_STATS_SERVER_ID` | This server's id in LANCommander, if LANCommander manages it | *(empty)* |
+| `MATCH_STATS_REPORTER_NAME` | How the server is named in LANCommander | *(hostname)* |
+| `MATCH_STATS_MIN_PLAYERS` | Human players needed before a match is recorded | *(1)* |
+| `MATCH_STATS_MODE` | The mode reported. Empty lets the game module decide | *(empty)* |
+| `MATCH_STATS_RECORD_BOTS` | Record bots as players (`true`/`false`) | *(true)* |
+| `MATCH_STATS_RECORD_CHAT` | Record chat messages (`true`/`false`) | *(false)* |
+
+Settings left empty aren't written, so they and the plugin's other `lc_*` cvars (see its README) can be set in
+`server.cfg` instead, which runs after `lancommander.cfg`. A `lancommander.cfg` you put in
+`Overlay/<game>/addons/lancommander/` yourself is left alone.
+
+`lc_status` on the server console or over RCON shows the match being recorded and how delivery is going. Reports that
+couldn't be delivered yet are kept in `Overlay/<game>/addons/lancommander/dlls/.interposer/Matches/` and sent once
+LANCommander can be reached.
+
 ## Custom Hooks
 
 PowerShell scripts in `/config/Scripts/Hooks/{HookName}/` run at points in the container's lifecycle:
@@ -125,6 +168,7 @@ Hooks shipped in this image (copied into `/config/Scripts/Hooks` on every start)
 
 - `PostInitialization/20-InstallGame.ps1`: Installs HLDS. It applies `GAME_MOD`, retries SteamCMD, runs `PostSteamInstallGame`, then remounts the overlay so anything SteamCMD or those hooks added to `Server/` shows up in `Merged/`.
 - `PostInitialization/30-ConfigureSteam.ps1`: Seeds `steam_appid.txt` and links `~/.steam/sdk32/steamclient.so`. Without these, HLDS fails its first launch with `Unable to initialize Steam`.
+- `PostInitialization/40-InstallMatchStatistics.ps1`: Installs or removes Metamod-P and the match statistics plugin. See [Match Statistics](#match-statistics).
 
 ## Troubleshooting
 
