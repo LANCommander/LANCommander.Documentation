@@ -26,41 +26,11 @@ jobs:
           sudo chmod +x /usr/local/bin/yq
 
       - name: Collect sources
-        env:
-          GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
 
           # One line per path mapping: name<TAB>repo<TAB>ref<TAB>from<TAB>to
           yq -r '.sources[] | . as $s | .paths[] | [$s.name, $s.repo, ($s.ref // "main"), .from, .to] | @tsv' sources.yml > /tmp/sources.tsv
-
-          ORG="$(yq -r '.servers.org' sources.yml)"
-          PREFIX="$(yq -r '.servers.prefix' sources.yml)"
-          FROM="$(yq -r '.servers.from' sources.yml)"
-          TO="$(yq -r '.servers.to' sources.yml)"
-
-          gh api --paginate "orgs/$ORG/repos?type=public&per_page=100" \
-            --jq ".[] | select(.archived | not) | select(.name | startswith(\"$PREFIX\")) | [.name, .default_branch] | @tsv" \
-            | sort > /tmp/servers.tsv
-
-          while IFS=$'\t' read -r REPO_NAME REF; do
-            SUFFIX="${REPO_NAME#"$PREFIX"}"
-
-            if [ "$(SUFFIX="$SUFFIX" yq '.servers.exclude // [] | contains([strenv(SUFFIX)])' sources.yml)" = "true" ]; then
-              echo "Skipping $REPO_NAME (excluded)"
-              continue
-            fi
-
-            if ! gh api "repos/$ORG/$REPO_NAME/contents/${FROM%/}?ref=$REF" --silent 2>/dev/null; then
-              echo "Skipping $REPO_NAME (no ${FROM%/} directory on $REF)"
-              continue
-            fi
-
-            FOLDER="$(SUFFIX="$SUFFIX" yq -r '.servers.overrides[strenv(SUFFIX)] // strenv(SUFFIX)' sources.yml)"
-            NAME="$(echo "$FOLDER" | tr '[:upper:]' '[:lower:]')"
-
-            printf '%s\t%s\t%s\t%s\t%s\n' "$NAME" "$ORG/$REPO_NAME" "$REF" "$FROM" "${TO%/}/$FOLDER" >> /tmp/sources.tsv
-          done < /tmp/servers.tsv
 
           cat /tmp/sources.tsv
 
@@ -96,6 +66,47 @@ jobs:
             mkdir -p "$TO"
             rsync -av --delete "$DEST/$FROM" "$TO"
           done < /tmp/sources.tsv
+
+          # Game servers: one clone of the monorepo, one docs folder per Servers/<Server>/
+          SERVERS_REPO="$(yq -r '.servers.repo' sources.yml)"
+          SERVERS_REF="$(yq -r '.servers.ref // "main"' sources.yml)"
+          SERVERS_ROOT="$(yq -r '.servers.root' sources.yml)"
+          SERVERS_FROM="$(yq -r '.servers.from' sources.yml)"
+          SERVERS_TO="$(yq -r '.servers.to' sources.yml)"
+          SERVERS_DEST=".external/servers"
+
+          echo "Syncing game servers ($SERVERS_REPO@$SERVERS_REF)"
+          rm -rf "$SERVERS_DEST"
+          git clone --depth 1 --branch "$SERVERS_REF" "https://github.com/${SERVERS_REPO}.git" "$SERVERS_DEST"
+          git -C "$SERVERS_DEST" fetch --tags --quiet
+
+          for DIR in "$SERVERS_DEST/${SERVERS_ROOT%/}"/*/; do
+            SERVER="$(basename "$DIR")"
+
+            if [ "$(SERVER="$SERVER" yq '.servers.exclude // [] | contains([strenv(SERVER)])' sources.yml)" = "true" ]; then
+              echo "Skipping $SERVER (excluded)"
+              continue
+            fi
+
+            if [ ! -d "$DIR${SERVERS_FROM%/}" ]; then
+              echo "Skipping $SERVER (no ${SERVERS_FROM%/} directory)"
+              continue
+            fi
+
+            FOLDER="$(SERVER="$SERVER" yq -r '.servers.overrides[strenv(SERVER)] // strenv(SERVER)' sources.yml)"
+            NAME="$(echo "$FOLDER" | tr '[:upper:]' '[:lower:]')"
+
+            # Newest <Server>/v* release tag in the monorepo
+            LATEST_TAG="$(git -C "$SERVERS_DEST" tag --list "$SERVER/v*" --sort=-v:refname | head -n 1 | tr -d '[:space:]' || true)"
+            LATEST_TAG="${LATEST_TAG#"$SERVER/"}"
+            VERSION="${LATEST_TAG:-unversioned}"
+
+            COMMIT_LINES+=("$NAME@$VERSION")
+            [ -n "$LATEST_TAG" ] && TAGS_TO_CREATE+=("$NAME/$LATEST_TAG")
+
+            mkdir -p "${SERVERS_TO%/}/$FOLDER"
+            rsync -av --delete "$DIR$SERVERS_FROM" "${SERVERS_TO%/}/$FOLDER"
+          done
 
           printf "%s\n" "${COMMIT_LINES[@]}" > /tmp/sources.txt
           printf "%s\n" "${TAGS_TO_CREATE[@]}" > /tmp/tags.txt

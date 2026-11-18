@@ -49,7 +49,7 @@ async function releasesDescendingSidebarItemsGenerator({
 
 const GAME_SERVERS_DIR = path.join(__dirname, 'GameServers');
 
-// Each server's docs are synced from its own repo into GameServers/<Server>, where
+// Each server's docs are synced from the LANCommander.Servers monorepo into GameServers/<Server>, where
 // the Docker page is the one people come for. That page becomes the server's landing
 // page, served from /GameServers/<Server> instead of /GameServers/<Server>/Docker; a
 // server with no Docker page but only one doc gets the same treatment for that doc.

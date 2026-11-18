@@ -13,19 +13,20 @@ sources:
       - from: LANCommander.Interposer.Documentation/
         to: Interposer/
 
-# Game servers are discovered automatically: every non-archived repo in the org
-# named <prefix>* that has a <from> directory on its default branch is synced
-# to <to>/<suffix>, where <suffix> is the repo name with the prefix removed.
+# Game servers come from the LANCommander.Servers monorepo: every <root><Server>/ directory
+# that has a <from> directory is synced to <to>/<Server>. Its version is the newest
+# <Server>/v* tag in that repo.
 servers:
-  org: LANCommander
-  prefix: LANCommander.Servers.
+  repo: LANCommander/LANCommander.Servers
+  ref: main
+  root: Servers/
   from: Documentation/
   to: GameServers/
 
-  # Repo suffix -> folder name, for servers whose docs path predates discovery
+  # Server directory -> folder name, for servers whose docs path predates the monorepo
   overrides:
     Battlefield1942: BF1942
     Quake3: Quake3Arena
 
-  # Repo suffixes to never sync
+  # Server directories to never sync
   exclude: []
