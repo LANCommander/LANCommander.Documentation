@@ -122,6 +122,23 @@ await interposer.DisconnectRelayAsync();
 
 The control methods reach the game over a named pipe the service creates before injecting, so they work for processes the same `InterposerService` started or injected. Inside the game process — a plugin, or managed code loaded there — `GetRelayStatus()`, `ConnectRelay()` and `DisconnectRelay()` call the DLL directly, and native plugins can use the `InterposerRelay*` exports declared in `relay.h`.
 
+## Linux
+
+Native Linux games are relayed too: `libLANCommander.Interposer.so`, loaded with `LD_PRELOAD`, reads the same `NetworkRelay` section and joins the same networks, so Windows and Linux players can share one. The game sees the same things it does on Windows:
+
+| The game asks | It is told |
+|---|---|
+| `gethostbyname` or `getaddrinfo` of its own host name | the virtual address |
+| `getifaddrs` | an `lcrelay0` interface carrying the virtual address, listed first |
+
+Its UDP and TCP traffic to virtual addresses goes through the relay. The `sendmsg`/`recvmsg` and `sendmmsg`/`recvmmsg` forms are covered too, which matters for ENet-based games. A launcher passes options that override `Config.yml` in the `INTERPOSER_RELAY` environment variable, as YAML. As with the Windows launcher mapping, its presence alone (even empty) installs the socket hooks, so the launcher can connect later through the control API.
+
+On Linux:
+
+- **IPX is not emulated.** Linux dropped IPX in kernel 4.18, and no native Linux game uses it. An IPX game running on Windows is still relayed between Windows players.
+- **`ioctl(SIOCGIFCONF)` is not answered** with the virtual address. Games that list interfaces through `getifaddrs` see it.
+- **A statically linked game, or one that makes raw system calls,** cannot be reached by `LD_PRELOAD` at all.
+
 ## Hosting the Server
 
 The server is the `LANCommander.Interposer.Relay` library. A LANCommander server hosts a `RelayServer` from a background service and supplies an `IRelayAuthenticator` that checks the ticket its launcher handed out — and can override the network and player name, so the ticket rather than the client decides who sees whom:
@@ -192,6 +209,7 @@ Set `Logging.Relay: true`:
 
 - **IPv4 only.** A game that talks IPv6 to its peers is not relayed.
 - **Multicast is not relayed.** Only unicast and broadcast datagrams are.
+- **IPX is emulated on Windows only** (see [Linux](#linux)).
 - **SPX is not emulated** — only IPX datagrams. `socket()` refuses SPX the way a machine without IPX would.
 - **Emulated IPX sockets refuse overlapped receives.** Era-appropriate games use blocking or `select`-driven receives, which work.
 - **An overlapped `WSARecvFrom` that completes later** has its source address translated when the game learns it completed — through `WSAGetOverlappedResult`, `GetOverlappedResult(Ex)`, `GetQueuedCompletionStatus(Ex)` or a completion routine. A game that only polls `HasOverlappedIoCompleted` calls none of them and sees the portal's `127.0.0.1` address instead; replies sent there still reach the right player.
@@ -203,7 +221,7 @@ Set `Logging.Relay: true`:
 
 ## Protocol
 
-For anyone implementing a client or server of their own. Version 1; every integer is big-endian, a string is a `u16` byte count followed by UTF-8. The reference implementations are `dll\src\relay_protocol.h` and `LANCommander.Interposer.Relay\Protocol\`.
+For anyone implementing a client or server of their own. Version 1; every integer is big-endian, a string is a `u16` byte count followed by UTF-8. The reference implementations are `dll\src\core\relay_protocol.h` and `LANCommander.Interposer.Relay\Protocol\`.
 
 **TCP** carries frames: `u16 length` (counting the type byte), `u8 type`, body. **UDP** carries packets: `u32 clientId`, `u32 udpToken`, `u8 type`, body.
 
@@ -227,4 +245,6 @@ For anyone implementing a client or server of their own. Version 1; every intege
 
 "Peer" and "local" are from the reader's point of view. A client sending a datagram names the destination as the peer (`0xFFFFFFFF` to broadcast) and its own port as local; the server rewrites the body so the receiver sees the sender as the peer and its own port as local. Stream ids work the same way: a client numbers the streams it opens below `0x80000000`, the server numbers the ones it delivers from `0x80000000` up, and translates between the two.
 
-A client sends `UdpHello` until it is acknowledged, switching its datagrams to UDP when it is, and every 15 s after that to keep a NAT mapping open. The server delivers datagrams to a client over UDP once that client has sent one over UDP — proof the client heard the acknowledgement — and goes back to TCP if the client does.
+A client sends `UdpHello` until it is acknowledged — every 500 ms for the first 20, then every 5 s for as long as it is connected — switching its datagrams to UDP when it is, and every second after that to keep a NAT mapping open. If no acknowledgement arrives for 5 s it sends its datagrams over TCP again and goes back to probing. The server delivers datagrams to a client over UDP once that client has sent one over UDP — proof the client heard the acknowledgement — and goes back to TCP if the client does.
+
+Both ends queue the TCP connection in two lanes: control frames and datagrams ahead of stream frames (`0x20`–`0x24`), which keep their order among themselves. A datagram that falls back to TCP therefore waits behind at most one slice of stream data, not behind a whole transfer.
