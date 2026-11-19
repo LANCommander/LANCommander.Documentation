@@ -3,6 +3,7 @@ import path from 'path';
 import {themes as prismThemes} from 'prism-react-renderer';
 import type {Config, LoadContext, Plugin} from '@docusaurus/types';
 import type * as OpenApiPlugin from "docusaurus-plugin-openapi-docs";
+import remarkPlaceholderTags from './src/utils/remarkPlaceholderTags';
 
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
@@ -198,6 +199,16 @@ const config: Config = {
         .relative(GAME_SERVERS_DIR, params.filePath)
         .split(path.sep);
 
+      // Synced server docs are plain Markdown, where `<version>` and the like are text.
+      // Parsed as MDX, they'd be unclosed JSX tags that fail the build.
+      if (
+        server !== '..' &&
+        params.filePath.endsWith('.md') &&
+        result.frontMatter.mdx === undefined
+      ) {
+        result.frontMatter.mdx = {format: 'md'};
+      }
+
       if (
         server !== '..' &&
         file &&
@@ -243,6 +254,7 @@ const config: Config = {
         routeBasePath: 'GameServers',
         sidebarPath: './sidebars.gameServers.ts',
         sidebarItemsGenerator: gameServersSidebarItemsGenerator,
+        remarkPlugins: [remarkPlaceholderTags],
       }
     ],
     [
