@@ -24,7 +24,9 @@ const sections: {id: string; title: string; description: string; projects: Proje
       'Fixes and enhancements for existing games, from compatibility and networking fixes to quality-of-life improvements.',
     projects: [
       { name: 'Battlefield 1942', description: 'A comprehensive set of patches for the game Battlefield 1942 introducing widescreen, high framerate support, modern controllers, and OpenSpy support.', repo: 'LANCommander/LANCommander.Patches.Battlefield1942' },
+      { name: 'Deer Hunter: The 2005 Season', description: 'A comprehensive set of patches for the game Deer Hunter: The 2005 Season adding proper widescreen support, high framerate support, proximity voice chat, and up to 64 player multiplayer over the network.', repo: 'LANCommander/LANCommander.Patches.DeerHunter2005' },
       { name: 'DethKarz', description: 'A comprehensive set of patches for the game DethKarz introducing widescreen, high framerate support, modern controllers, network stability, and 16 player races over the network.', repo: 'LANCommander/LANCommander.Patches.DethKarz' },
+      { name: 'Legends of Might and Magic', description: 'A comprehensive set of patches for the game Legends of Might and Magic adding proper widescreen support, scaled UI, and proximity voice chat.', repo: 'LANCommander/LANCommander.Patches.LegendsOfMightAndMagic' },
       { name: 'Plane Crazy', description: 'A comprehensive set of patches for the game Plane Crazy introducing widescreen, high framerate support, modern controllers, and 16 player races over the network.', repo: 'LANCommander/LANCommander.Patches.PlaneCrazy' },
       { name: 'Motocross Madness 2', description: 'A comprehensive set of patches for the game Motocross Madness 2 introducing widescreen, high framerate support, and modern controller support.', repo: 'LANCommander/LANCommander.Patches.MotocrossMadness2' }
     ],
