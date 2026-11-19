@@ -4,7 +4,7 @@ sidebar_label: Docker
 
 # Star Trek: Elite Force Dedicated Server
 
-This repository provides a Dockerized **Star Trek: Elite Force dedicated server via cMod** suitable for running multiplayer Star Trek: Elite Force servers in a clean, reproducible way.  
+This image provides a Dockerized **Star Trek: Elite Force dedicated server via cMod** suitable for running multiplayer Star Trek: Elite Force servers in a clean, reproducible way.  
 The image is designed for **headless operation**, supports bind-mounted mods and configuration, and handles legacy runtime dependencies required by Star Trek: Elite Force.
 
 ---
@@ -212,4 +212,4 @@ docker run --rm -it \
 
 ## License
 cMod is distributed under its own license.
-This repository contains only Docker build logic and helper scripts licensed under MIT.
+This directory contains only Docker build logic and helper scripts licensed under MIT.

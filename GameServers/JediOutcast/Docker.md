@@ -4,7 +4,7 @@ sidebar_label: Docker
 
 # Jedi Knight II: Jedi Outcast Dedicated Server
 
-This repository provides a Dockerized **Jedi Knight II: Jedi Outcast dedicated server via JK2MV** suitable for running multiplayer Jedi Knight II: Jedi Outcast servers in a clean, reproducible way.  
+This image provides a Dockerized **Jedi Knight II: Jedi Outcast dedicated server via JK2MV** suitable for running multiplayer Jedi Knight II: Jedi Outcast servers in a clean, reproducible way.  
 The image is designed for **headless operation**, supports bind-mounted mods and configuration, and handles legacy runtime dependencies required by Jedi Knight II: Jedi Outcast.
 
 ---
@@ -199,4 +199,4 @@ docker run --rm -it \
 
 ## License
 JK2MV is distributed under its own license.
-This repository contains only Docker build logic and helper scripts licensed under MIT.
+This directory contains only Docker build logic and helper scripts licensed under MIT.

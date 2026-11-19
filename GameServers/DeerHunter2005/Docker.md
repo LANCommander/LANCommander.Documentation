@@ -40,7 +40,8 @@ Copy a Deer Hunter 2005 **v1.2** install (the folder with `DH2005.exe`, `Aspen.d
 1. `PostInitialization/10-InitializeWinePrefix.ps1` (from the WINE image) creates the Wine prefix in `/config/wineprefix`.
 2. `PostInitializeWinePrefix/20-InstallDirectPlay.ps1` runs `winetricks directplay` once, using the DirectX redist cached in the image. This installs Microsoft's `dpnet.dll` and related DLLs. The game needs them: with Wine's builtin DirectPlay 8 it logs `Could not init CNetServer DirectPlay media!` and quits. A marker file, `wineprefix/.lancommander-directplay`, records that the install is done. Delete it to reinstall.
 3. `PostInitialization/20-InstallDeerHunter2005.ps1` checks for `Server/DH2005.exe`. If it's missing and `DH2005_ARCHIVE_URL` is set, the hook downloads the archive.
-4. `START_EXE` (`/usr/local/bin/dh2005-server`) builds the command line from the `DH2005_*` variables and writes it to `C:\dh2005-server.bat`. It runs the batch file with `wine cmd` under Xvfb, and follows `Game/Game.LOG` to stdout.
+4. `PostInitialization/30-InstallPatch.ps1` installs the [modern patch](https://github.com/LANCommander/LANCommander.Patches.DeerHunter2005) (`dinput8.dll` and a generated `dh2005patch.ini`) unless `DH2005_PATCH_ENABLED=false`. It sets the player cap, the animal settings and LANCommander match statistics; see the README.
+5. `START_EXE` (`/usr/local/bin/dh2005-server`) builds the command line from the `DH2005_*` variables and writes it to `C:\dh2005-server.bat`. It runs the batch file with `wine cmd` under Xvfb, and follows `Game/Game.LOG` to stdout.
 
 The game parses its own Windows command line (`-Server_Name:"My Server"`). This is why the command line is written to a batch file and isn't passed through `START_ARGS`. Use `DH2005_EXTRA_ARGS` for anything raw. Any `START_ARGS` are appended too, but quoting inside them is lost.
 

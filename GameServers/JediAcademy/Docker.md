@@ -4,7 +4,7 @@ sidebar_label: Docker
 
 # Jedi Knight: Jedi Academy Dedicated Server (Docker)
 
-This repository provides a Dockerized **Jedi Knight: Jedi Academy dedicated server via OpenJK** suitable for running multiplayer Jedi Knight: Jedi Academy servers in a clean, reproducible way.  
+This image provides a Dockerized **Jedi Knight: Jedi Academy dedicated server via OpenJK** suitable for running multiplayer Jedi Knight: Jedi Academy servers in a clean, reproducible way.  
 The image is designed for **headless operation**, supports bind-mounted mods and configuration, and handles legacy runtime dependencies required by Jedi Knight: Jedi Academy.
 
 ---

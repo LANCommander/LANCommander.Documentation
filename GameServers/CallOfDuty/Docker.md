@@ -4,7 +4,7 @@ sidebar_label: Docker
 
 # Call of Duty Dedicated Server
 
-This repository provides a Dockerized **Call of Duty dedicated server** suitable for running multiplayer Call of Duty servers in a clean, reproducible way.  
+This image provides a Dockerized **Call of Duty dedicated server** suitable for running multiplayer Call of Duty servers in a clean, reproducible way.  
 The image is designed for **headless operation**, supports bind-mounted mods and configuration, and handles legacy runtime dependencies required by Call of Duty.
 
 ---

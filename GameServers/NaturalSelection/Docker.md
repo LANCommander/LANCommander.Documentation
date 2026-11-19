@@ -77,7 +77,7 @@ The map rotation is in `ns/mapcycle.txt`. Entries can carry `minplayers` and `ma
 
 ## Match Statistics
 
-The Half-Life image's [match statistics](https://github.com/LANCommander/LANCommander.Servers.HalfLife/blob/main/Documentation/Docker.md#match-statistics)
+The Half-Life image's [match statistics](https://github.com/LANCommander/LANCommander.Servers/blob/main/Servers/HalfLife/Documentation/Docker.md#match-statistics)
 work here too: set `MATCH_STATS_SERVER_URL`, `MATCH_STATS_TOKEN` and `MATCH_STATS_GAME_ID`, and Metamod-P and the plugin
 are installed into `ns/addons/` (the game directory comes from `-game ns` in `START_ARGS`). Each game on a map is its own
 match, classic and combat alike. NS bots count as players but not toward `MATCH_STATS_MIN_PLAYERS`.
