@@ -706,6 +706,60 @@ placed in a section the user cannot see is not shown to them. Place entries mean
 `Main`, `Dashboards`, or the plugin area. An entry whose section is not recognized is shown in the
 plugin area, and a warning is logged.
 
+### Many entries, and groups of them
+
+A plugin can register as many entries as it likes, one registration each. `ServerNavigationLink`
+implements `IServerNavigationExtension` so they don't each need a class.
+
+To gather entries under an expandable group, like Dashboards or Settings, register an
+`IServerNavigationGroupExtension` (or a `ServerNavigationGroup`) and name its `Id` as the entries'
+`Section`. A group is placed with `Section`, `After` and `Order` just like an entry, and can be nested
+in another plugin group by naming that group's `Id` as its own `Section`:
+
+```csharp
+services.AddSingleton<IServerNavigationGroupExtension>(new ServerNavigationGroup
+{
+    Id = "com.mycompany.myplugin",
+    Label = "My Plugin",
+    Icon = "Package",
+    Section = ServerNavigationSection.Main,
+    After = ServerNavigationSection.Metadata,
+});
+
+services.AddSingleton<IServerNavigationExtension>(new ServerNavigationLink
+{
+    Id = "com.mycompany.myplugin.catalog",
+    Label = "Catalog",
+    Href = "/Plugins/MyPlugin/Catalog",
+    Section = "com.mycompany.myplugin",
+});
+
+services.AddSingleton<IServerNavigationExtension>(new ServerNavigationLink
+{
+    Id = "com.mycompany.myplugin.reports",
+    Label = "Reports",
+    Href = "/Plugins/MyPlugin/Reports",
+    Section = "com.mycompany.myplugin",
+});
+```
+
+Inside a group, entries and nested groups are ordered by `Order`, then by label, and
+`ServerNavigationAnchor.Start` places one first. A group's `Id` must not match an entry's id or a
+`ServerNavigationSection` value.
+
+Any plugin can place entries in any group. Plugins that each declare a group with the same `Id`
+share a single group holding all of their entries, so each of them works with or without the others
+installed. Choose an id neither plugin owns, such as `community.reports`. The shared group takes
+its label, icon and placement from the declaration with the lowest `Order`, with ties settled by the
+declarations' values rather than by load order, and logs a warning if the declarations disagree. It
+is shown to anyone who satisfies any of the declarations' `Access`, and each entry inside it is still
+checked against its own.
+
+A group is shown only while it holds an entry the user may see. Its `Access` hides it, and everything
+in it, from users who don't satisfy it; each entry inside is also checked against its own `Access`.
+Groups can't be placed in `Profile`, and groups nested in a cycle are ignored with a warning. An entry
+whose group isn't registered is shown in the plugin area.
+
 ### Plugin settings pages
 
 A plugin whose only page is a handful of settings doesn't need a navigation entry. Register an
