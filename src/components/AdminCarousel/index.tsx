@@ -12,40 +12,58 @@ type Screenshot = {
 
 const screenshots: Screenshot[] = [
   {
-    src: '/img/screenshots/admin/games.png',
-    alt: 'Game Management',
-    label: 'Game Management',
-    caption: 'Manage your game collection via the admin web UI',
-  },
-  {
-    src: '/img/screenshots/admin/servers.png',
-    alt: 'Server Management',
-    label: 'Server Management',
-    caption: 'Manage game servers from one interface',
-  },
-  {
-    src: '/img/screenshots/admin/redistributables.png',
-    alt: 'Redistributable Management',
-    label: 'Redistributable Management',
-    caption: 'Manage common redistributables and assign them to games',
-  },
-  {
-    src: '/img/screenshots/admin/dashboard.png',
-    alt: 'Dashboarding',
-    label: 'Dashboarding',
+    src: '/img/screenshots/admin/dashboard.jpg',
+    alt: 'Dashboard',
+    label: 'Dashboard',
     caption: 'Monitor player activity and popular games',
   },
   {
-    src: '/img/screenshots/admin/issues.png',
-    alt: 'Issue Tracking',
-    label: 'Issue Tracking',
-    caption: 'Collect and track issues submitted by users for games',
+    src: '/img/screenshots/admin/games-covers.jpg',
+    alt: 'Game Covers',
+    label: 'Game Library',
+    caption: 'Manage your game collection via the web UI',
   },
   {
-    src: '/img/screenshots/admin/collections.png',
-    alt: 'Game Collections',
-    label: 'Game Collections',
-    caption: 'Sort and categorize games with metadata',
+    src: '/img/screenshots/admin/games-list.jpg',
+    alt: 'Game List',
+    label: 'Game Filtering',
+    caption: 'Find games quickly with flexible filters',
+  },
+  {
+    src: '/img/screenshots/admin/game-edit.jpg',
+    alt: 'Game Editing',
+    label: 'Game Editing',
+    caption: 'Edit metadata, versions, actions, and more',
+  },
+  {
+    src: '/img/screenshots/admin/script-editor.jpg',
+    alt: 'Script Editor',
+    label: 'Script Editor',
+    caption: 'Write install and launch scripts with completions',
+  },
+  {
+    src: '/img/screenshots/admin/server-monitor.jpg',
+    alt: 'Server Monitor',
+    label: 'Server Management',
+    caption: 'Manage and monitor game servers from one interface',
+  },
+  {
+    src: '/img/screenshots/admin/pages.jpg',
+    alt: 'Pages',
+    label: 'Pages',
+    caption: 'Publish pages with live game and server embeds',
+  },
+  {
+    src: '/img/screenshots/admin/plugins.jpg',
+    alt: 'Plugins',
+    label: 'Plugins',
+    caption: 'Extend LANCommander with plugins from NuGet',
+  },
+  {
+    src: '/img/screenshots/admin/chat.jpg',
+    alt: 'Chat',
+    label: 'Chat',
+    caption: 'Chat with players from the web UI or the launcher',
   },
 ];
 
