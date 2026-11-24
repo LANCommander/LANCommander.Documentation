@@ -2,7 +2,7 @@
   padding: 5rem 0 4rem;
   border-bottom: 1px solid var(--ifm-color-emphasis-200);
   background:
-    radial-gradient(ellipse 80% 60% at 50% -10%, rgba(24, 144, 255, 0.18), transparent 70%);
+    radial-gradient(ellipse 80% 60% at 50% -10%, color-mix(in srgb, var(--lc-primary) 18%, transparent), transparent 70%);
 }
 
 .headerInner {
@@ -38,23 +38,6 @@
   gap: 1rem;
 }
 
-/* Infima's .button is flex-aligned globally in custom.css, which drops the centering it
-   would otherwise inherit from text-align. */
-.button {
-  justify-content: center;
-}
-
-.ghostButton {
-  color: var(--ifm-color-content);
-  border-color: var(--ifm-color-emphasis-300);
-}
-
-.ghostButton:hover {
-  color: var(--ifm-color-content);
-  border-color: var(--ifm-color-primary);
-  background: rgba(24, 144, 255, 0.08);
-}
-
 .main {
   padding-bottom: 0;
 }
@@ -64,7 +47,7 @@
 }
 
 .bandAlt {
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--lc-well);
   border-top: 1px solid var(--ifm-color-emphasis-200);
   border-bottom: 1px solid var(--ifm-color-emphasis-200);
 }
@@ -122,13 +105,13 @@
   flex-direction: column;
   padding: 2rem 1.75rem;
   border: 1px solid var(--ifm-color-emphasis-200);
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.04);
+  border-radius: var(--lc-radius-lg);
+  background: var(--lc-panel-background);
 }
 
 .planPremium {
-  border-color: rgba(24, 144, 255, 0.4);
-  box-shadow: 0 0 48px rgba(24, 144, 255, 0.08);
+  border-color: color-mix(in srgb, var(--lc-primary) 40%, transparent);
+  box-shadow: 0 0 48px color-mix(in srgb, var(--lc-primary) 8%, transparent);
 }
 
 .planName {
@@ -141,7 +124,7 @@
 
 .planPrice {
   font-size: 2.75rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1;
   margin-bottom: 1.75rem;
 }
@@ -196,7 +179,7 @@
   padding: 5rem 0;
   text-align: center;
   background:
-    radial-gradient(ellipse 70% 100% at 50% 100%, rgba(24, 144, 255, 0.15), transparent 70%);
+    radial-gradient(ellipse 70% 100% at 50% 100%, color-mix(in srgb, var(--lc-primary) 15%, transparent), transparent 70%);
   border-top: 1px solid var(--ifm-color-emphasis-200);
 }
 
@@ -211,10 +194,6 @@
   font-size: 1.05rem;
   color: var(--ifm-color-content-secondary);
   line-height: 1.65;
-}
-
-.cta .button {
-  display: inline-flex;
 }
 
 @media (max-width: 996px) {

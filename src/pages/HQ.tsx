@@ -70,14 +70,14 @@ export default function HQ(): ReactNode {
             </p>
             <div className={styles.buttons}>
               <Link
-                className={clsx('button button--primary button--lg', styles.button)}
+                className="button button--primary button--lg"
                 href={HQ_URL}>
                 Get Started
               </Link>
               {/* A raw anchor rather than <Link>, whose broken-anchor check only knows about
                   anchors generated from markdown headings, not an id on a section. */}
               <a
-                className={clsx('button button--outline button--lg', styles.button, styles.ghostButton)}
+                className="button button--outline button--lg"
                 href="#api">
                 Read the API docs
               </a>
@@ -226,7 +226,7 @@ var game = await client.Games.GetAsync("igdb", results.First().ProviderId);`}
               Point your server at HQ and let it fill in the covers, the player counts, and the save
               paths for you.
             </p>
-            <Link className={clsx('button button--primary button--lg', styles.button)} href={HQ_URL}>
+            <Link className="button button--primary button--lg" href={HQ_URL}>
               Get Started
             </Link>
           </div>

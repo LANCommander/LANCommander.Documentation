@@ -10,18 +10,18 @@
   flex-direction: column;
   padding: 1.75rem 1.5rem 1.25rem;
   border: 1px solid var(--ifm-color-emphasis-200);
-  border-radius: 8px;
-  background: #ffffff;
+  border-radius: var(--lc-radius-lg);
+  background: var(--lc-panel-background);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 [data-theme='dark'] .card {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--lc-panel-background);
 }
 
 .card:hover {
   border-color: var(--ifm-color-primary);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--lc-shadow-popover);
 }
 
 .cardHeader {
@@ -34,7 +34,7 @@
 
 .cardTitle {
   font-size: 1.2rem;
-  font-weight: 700;
+  font-weight: 600;
   margin: 0;
 }
 
@@ -44,9 +44,9 @@
   font-size: 0.8rem;
   line-height: 1;
   padding: 0.3rem 0.5rem;
-  border: 1px solid rgba(24, 144, 255, 0.35);
-  border-radius: 3px;
-  background: rgba(24, 144, 255, 0.1);
+  border: 1px solid color-mix(in srgb, var(--lc-primary) 35%, transparent);
+  border-radius: var(--lc-radius-sm);
+  background: color-mix(in srgb, var(--lc-primary) 10%, transparent);
   color: var(--ifm-color-primary-light);
 }
 

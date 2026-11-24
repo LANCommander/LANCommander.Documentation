@@ -19,27 +19,27 @@
   flex-direction: column;
   padding: 1.5rem;
   border: 1px solid var(--ifm-color-emphasis-200);
-  border-radius: 8px;
-  background: #ffffff;
+  border-radius: var(--lc-radius-lg);
+  background: var(--lc-panel-background);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 [data-theme='dark'] .card {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--lc-panel-background);
 }
 
 .card:hover {
   border-color: var(--ifm-color-primary);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--lc-shadow-popover);
 }
 
 /* Premium cards keep the gold accent even at rest, so they read as a group when scanning. */
 .cardPremium {
-  border-color: rgba(250, 173, 20, 0.35);
+  border-color: color-mix(in srgb, var(--lc-warning) 35%, transparent);
 }
 
 .cardPremium:hover {
-  border-color: #faad14;
+  border-color: var(--lc-warning-text-color);
 }
 
 .cardHeader {
@@ -52,7 +52,7 @@
 
 .cardTitle {
   font-size: 1.2rem;
-  font-weight: 700;
+  font-weight: 600;
   margin: 0;
 }
 
@@ -74,10 +74,10 @@
   line-height: 1;
   letter-spacing: 0.02em;
   padding: 0.3rem 0.5rem;
-  border: 1px solid rgba(250, 173, 20, 0.35);
-  border-radius: 3px;
-  background: rgba(250, 173, 20, 0.1);
-  color: #faad14;
+  border: 1px solid color-mix(in srgb, var(--lc-warning) 35%, transparent);
+  border-radius: var(--lc-radius-sm);
+  background: color-mix(in srgb, var(--lc-warning) 10%, transparent);
+  color: var(--lc-warning-text-color);
 }
 
 .slug {
@@ -122,6 +122,6 @@
   line-height: 1;
   padding: 0.35rem 0.5rem;
   border: 1px solid var(--ifm-color-emphasis-300);
-  border-radius: 3px;
+  border-radius: var(--lc-radius-sm);
   color: var(--ifm-color-content-secondary);
 }

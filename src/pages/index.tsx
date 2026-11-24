@@ -38,11 +38,11 @@ function HomepageHeader() {
             networks. No internet required.
           </p>
           <div className={styles.buttons}>
-            <Link className={clsx('button button--primary button--lg', styles.getStartedButton)} to="/Overview">
+            <Link className="button button--primary button--lg" to="/Overview">
               Get Started
             </Link>
             <Link
-              className={clsx('button button--outline button--lg', styles.ghostButton)}
+              className="button button--outline button--lg"
               href="https://github.com/LANCommander/LANCommander">
               <svg
                 width="18"
@@ -96,17 +96,17 @@ function CommunitySection() {
           </p>
           <div className={styles.communityButtons}>
             <Link
-              className={clsx('button button--primary button--lg', styles.getStartedButton)}
+              className="button button--primary button--lg"
               href="https://discord.gg/vDEEWVt8EM">
               Join Discord
             </Link>
             <Link
-              className={clsx('button button--outline button--lg', styles.ghostButton)}
+              className="button button--outline button--lg"
               href="https://github.com/LANCommander/LANCommander">
               Star on GitHub
             </Link>
             <Link
-              className={clsx('button button--outline button--lg', styles.ghostButton)}
+              className="button button--outline button--lg"
               href="https://www.patreon.com/LANCommander">
               Support on Patreon
             </Link>

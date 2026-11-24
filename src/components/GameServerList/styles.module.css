@@ -11,23 +11,23 @@
   flex-direction: column;
   padding: 1.25rem 1.25rem 1rem;
   border: 1px solid var(--ifm-color-emphasis-200);
-  border-radius: 8px;
-  background: #ffffff;
+  border-radius: var(--lc-radius-lg);
+  background: var(--lc-panel-background);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 [data-theme='dark'] .card {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--lc-panel-background);
 }
 
 .card:hover {
   border-color: var(--ifm-color-primary);
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--lc-shadow-popover);
 }
 
 .cardTitle {
   font-size: 1.05rem;
-  font-weight: 700;
+  font-weight: 600;
   margin: 0 0 0.5rem;
 }
 

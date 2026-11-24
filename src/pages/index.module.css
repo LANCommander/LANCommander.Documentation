@@ -48,20 +48,7 @@
   flex-wrap: wrap;
 }
 
-.getStartedButton {
-  color: #ffffff !important;
-}
-
-.ghostButton {
-  color: rgba(255, 255, 255, 0.82) !important;
-  border-color: rgba(255, 255, 255, 0.28) !important;
-}
-
-.ghostButton:hover {
-  color: #ffffff !important;
-  border-color: rgba(255, 255, 255, 0.65) !important;
-  background: rgba(255, 255, 255, 0.07) !important;
-}
+/* The buttons are the global Infima ones, restyled in custom.css */
 
 /* Screenshot Section */
 .screenshotContainer {
@@ -96,7 +83,7 @@
 .sectionTitle {
   text-align: center;
   font-size: 2rem;
-  font-weight: 700;
+  font-weight: 600;
   margin-bottom: 0.6rem;
 }
 
@@ -112,7 +99,7 @@
 .communitySectionTitle {
   text-align: center;
   font-size: 2rem;
-  font-weight: 700;
+  font-weight: 600;
   margin-bottom: 0.6rem;
   color: #ffffff;
 }

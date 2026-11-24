@@ -5,13 +5,13 @@
 }
 
 [data-theme='dark'] .features {
-  background: #141414;
+  background: var(--lc-well);
 }
 
 .sectionHeading {
   text-align: center;
   font-size: 2rem;
-  font-weight: 700;
+  font-weight: 600;
   margin-bottom: 0.5rem;
 }
 
@@ -28,21 +28,10 @@
   margin-bottom: 1.25rem;
 }
 
+/* The card itself is the global .card (custom.css): Surface, hairline, large radius */
 .featureCard {
   padding: 1.75rem 1.5rem;
   height: 100%;
-  background: #ffffff;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-}
-
-[data-theme='dark'] .featureCard {
-  background: rgba(255, 255, 255, 0.04);
-}
-
-.featureCard:hover {
-  border-color: var(--ifm-color-primary);
-  box-shadow: 0 6px 24px rgba(0,0,0,0.5);
-  transform: scale(1.05);
 }
 
 .featureIcon {
@@ -53,15 +42,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(24, 144, 255, 0.1);
-  border-radius: 10px;
+  background: color-mix(in srgb, var(--lc-primary) 10%, transparent);
+  border-radius: var(--lc-radius-lg);
   padding: 10px;
   box-sizing: border-box;
 }
 
 .featureTitle {
   font-size: 1.1rem;
-  font-weight: 700;
+  font-weight: 600;
   margin-bottom: 0.5rem;
 }
 

@@ -1,52 +1,573 @@
 /**
- * Any CSS included here will be global. The classic template
- * bundles Infima by default. Infima is a CSS framework designed to
- * work well for content-centric websites.
+ * Global styles. The tokens and the Infima mapping live in lancommander-theme.css; the rules
+ * here restyle Infima's components after LANCommander.Server.UI's controls, where a variable
+ * alone doesn't reach.
  */
+@import './lancommander-theme.css';
 
-/* You can override the default Infima variables here. */
-:root,
-html[data-theme='dark'] {
-  --ifm-color-primary: #1890ff;
-  --ifm-color-primary-dark: #096dd9;
-  --ifm-color-primary-darker: #0050b3;
-  --ifm-color-primary-darkest: #003a8c;
-  --ifm-color-primary-light: #40a9ff;
-  --ifm-color-primary-lighter: #69c0ff;
-  --ifm-color-primary-lightest: #91d5ff;
-  
-  /* AntDesign dark background colors */
-  --ifm-background-color: #000;
-  --ifm-navbar-background-color: #000;
-  --ifm-footer-background-color: #000;
-  --ifm-card-background-color: #000;
-  
-  /* AntDesign dark text colors */
-  --ifm-color-content: rgba(255, 255, 255, 0.85);
-  --ifm-color-content-secondary: rgba(255, 255, 255, 0.65);
-  
-  /* Borders and dividers */
-  --ifm-color-emphasis-200: rgba(255, 255, 255, 0.08);
-  --ifm-color-emphasis-300: rgba(255, 255, 255, 0.12);
-  
-  --docusaurus-highlighted-code-line-bg: rgba(0, 0, 0, 0.3);
-
-  --ifm-button-border-radius: 3px;
-  --ifm-button-color: #fff;
+body {
+  font-size: var(--ifm-font-size-base);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.footer--dark {
-  background: #000;
+::selection {
+  background: var(--lc-primary-lighter);
 }
 
+/* ── Navbar: canvas with a hairline under it ──────────────────── */
+.navbar {
+  border-bottom: 1px solid var(--lc-border-subtle-color);
+}
+
+.navbar__link {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.navbar__link--active {
+  color: var(--lc-text-title-color);
+}
+
+/* Dropdowns float on Popover */
+.dropdown__menu {
+  padding: 4px;
+  border: 1px solid var(--lc-border-overlay-color);
+  border-radius: var(--lc-radius-lg);
+  background: var(--lc-popover);
+  box-shadow: var(--lc-shadow-popover);
+}
+
+.dropdown__link {
+  border-radius: var(--lc-radius-md);
+  color: var(--lc-text-color);
+  font-size: 14px;
+}
+
+.dropdown__link:hover {
+  background: var(--lc-hover-background);
+}
+
+.dropdown__link--active {
+  background: var(--lc-state-pressed);
+  color: var(--lc-accent-text-color);
+}
+
+/* ── Sidebar: the server's sidebar menu ────────────────────────── */
+.theme-doc-sidebar-container {
+  border-right-color: var(--lc-border-subtle-color) !important;
+}
+
+.menu {
+  font-weight: 500;
+}
+
+.menu__list-item:not(:first-child) {
+  margin-top: 1px;
+}
+
+.menu__link {
+  position: relative;
+  border-radius: var(--lc-radius-md);
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.menu__link:hover,
+.menu__caret:hover {
+  color: var(--lc-text-title-color);
+}
+
+/* Active is Raised plus a short accent rail inset from the item's ends */
+.menu__link--active:not(.menu__link--sublist) {
+  background: var(--lc-raised);
+  color: var(--lc-text-title-color);
+}
+
+.menu__link--active:not(.menu__link--sublist)::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  top: 8px;
+  bottom: 8px;
+  width: var(--lc-selection-rail);
+  border-radius: 1px;
+  background: var(--lc-selection-rail-color);
+}
+
+/* A category holding the open page reads as plain text; the rail on the item marks the page */
+.menu__link--sublist.menu__link--active,
+.menu__link--sublist.menu__link--active:hover {
+  background: transparent;
+  color: var(--lc-text-secondary-color);
+}
+
+.menu__link--sublist-caret::after,
+.menu__caret::before {
+  opacity: 0.6;
+}
+
+/* Open groups hang off a faint rail */
+.menu__list .menu__list {
+  position: relative;
+  padding-left: 12px;
+}
+
+.menu__list .menu__list::before {
+  content: "";
+  position: absolute;
+  inset-block: 4px;
+  left: 12px;
+  width: 1px;
+  background: var(--lc-border-subtle-color);
+}
+
+.menu__list .menu__list .menu__link {
+  font-size: 13px;
+  font-weight: 400;
+}
+
+/* ── Table of contents and breadcrumbs ────────────────────────── */
+.table-of-contents {
+  font-size: 13px;
+}
+
+.table-of-contents__link {
+  color: var(--lc-text-tertiary-color);
+}
+
+.table-of-contents__link:hover,
+.table-of-contents__link--active {
+  color: var(--lc-accent-text-color);
+}
+
+.breadcrumbs__link {
+  border-radius: var(--lc-radius-md);
+  background: transparent;
+  color: var(--lc-text-tertiary-color);
+  font-size: 12px;
+}
+
+.breadcrumbs__item--active .breadcrumbs__link {
+  background: transparent;
+  color: var(--lc-text-secondary-color);
+}
+
+a.breadcrumbs__link:hover {
+  background: var(--lc-hover-background);
+  color: var(--lc-text-title-color);
+}
+
+/* ── Typography ───────────────────────────────────────────────── */
+.markdown h1,
+.markdown h2,
+.markdown h3 {
+  letter-spacing: -0.01em;
+}
+
+.markdown h2 {
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid var(--lc-border-subtle-color);
+}
+
+.markdown > p,
+.markdown li {
+  color: var(--lc-text-color);
+}
+
+/* Inline code: Raised, small radius, mono */
+code {
+  border: 0;
+  border-radius: var(--lc-radius-sm);
+  background: var(--lc-raised);
+  font-size: 0.875em;
+  vertical-align: baseline;
+}
+
+a code {
+  color: inherit;
+}
+
+/* Code blocks sit in a well with a hairline */
+.theme-code-block {
+  border: 1px solid var(--lc-border-card-color);
+  border-radius: var(--lc-radius-lg) !important;
+  box-shadow: none !important;
+}
+
+.theme-code-block pre,
+.theme-code-block code {
+  background: var(--lc-well) !important;
+}
+
+.theme-code-block code {
+  border-radius: 0;
+}
+
+[class*="codeBlockTitle"] {
+  border-bottom: 1px solid var(--lc-border-card-color) !important;
+  background: var(--lc-panel-background) !important;
+  color: var(--lc-text-secondary-color);
+  font-family: var(--lc-font-mono);
+  font-size: 12px !important;
+}
+
+.clean-btn[class*="copyButton"],
+.clean-btn[class*="wordWrapButton"] {
+  border: 1px solid var(--lc-border-color);
+  border-radius: var(--lc-radius-md);
+  background: var(--lc-raised);
+}
+
+/* ── Tables: kicker-cased head on a well, rows split by hairlines ── */
+.markdown table {
+  display: table;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+  border: 1px solid var(--lc-border-card-color);
+  border-radius: var(--lc-radius-lg);
+  background: var(--lc-panel-background);
+  font-size: 14px;
+}
+
+.markdown table thead tr {
+  border: 0;
+}
+
+.markdown table th {
+  border: 0;
+  border-bottom: 1px solid var(--lc-border-color);
+  background: var(--lc-well);
+  color: var(--lc-text-tertiary-color);
+  font-size: var(--lc-kicker-size);
+  font-weight: 600;
+  letter-spacing: var(--lc-kicker-tracking);
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.markdown table tr {
+  border: 0;
+  background: transparent;
+}
+
+.markdown table td {
+  border: 0;
+  border-bottom: 1px solid var(--lc-divider-row-color);
+}
+
+.markdown table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.markdown table tbody tr:hover {
+  background: var(--lc-hover-background);
+}
+
+/* ── Admonitions: the server's alerts ─────────────────────────── */
+.theme-admonition.alert {
+  --lc-alert-fill: var(--lc-primary);
+  --lc-alert-tint: var(--lc-accent-text-color);
+
+  border: 0;
+  border-radius: var(--lc-radius-md);
+  background: color-mix(in srgb, var(--lc-alert-fill) 14%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--lc-alert-tint) 32%, transparent);
+  color: var(--lc-text-secondary-color);
+  font-size: 14px;
+}
+
+.theme-admonition.alert--success { --lc-alert-fill: var(--lc-success); --lc-alert-tint: var(--lc-success-text-color); }
+.theme-admonition.alert--warning { --lc-alert-fill: var(--lc-warning); --lc-alert-tint: var(--lc-warning-text-color); }
+.theme-admonition.alert--danger { --lc-alert-fill: var(--lc-danger); --lc-alert-tint: var(--lc-danger-text-color); }
+
+.theme-admonition.alert--secondary {
+  --lc-alert-tint: var(--lc-text-secondary-color);
+  background: var(--lc-panel-background);
+  box-shadow: inset 0 0 0 1px var(--lc-border-card-color);
+}
+
+.theme-admonition [class*="admonitionHeading"] {
+  color: var(--lc-alert-tint);
+  font-size: var(--lc-kicker-size);
+  font-weight: 600;
+  letter-spacing: var(--lc-kicker-tracking);
+}
+
+.theme-admonition [class*="admonitionIcon"] svg {
+  fill: var(--lc-alert-tint);
+}
+
+.theme-admonition a {
+  color: var(--lc-accent-text-color);
+  text-decoration: none;
+}
+
+.theme-admonition code {
+  background: var(--lc-hover-background);
+}
+
+/* ── Buttons: LANCommander.Server.UI's Button ───────────────────
+ * Sized by height rather than Infima's padding multiplier: md 36px, sm 32px, lg 40px (the
+ * server has no large size; hero calls to action get one step up). Edges are inset hairlines,
+ * so Infima's border is zeroed and every variant is set through its own variables. */
 .button {
-  display: flex;
+  --ifm-button-border-width: 0;
+  --ifm-button-border-color: transparent;
+
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 18px;
+  border-radius: var(--lc-radius-md);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1;
+  transition-property: color, background-color, box-shadow;
 }
 
+.button--sm {
+  height: 32px;
+  padding: 0 14px;
+}
+
+.button--lg {
+  height: 40px;
+  padding: 0 20px;
+  font-size: 14px;
+}
+
+.button--block {
+  display: flex;
+  width: 100%;
+}
+
+/* Primary: the accent fill with the lit top edge, darkening a step per state */
+.button--primary,
+.button--primary.button--outline {
+  --ifm-button-background-color: var(--lc-primary);
+  --ifm-button-color: #FFFFFF;
+
+  box-shadow: var(--lc-inset-highlight-solid);
+  font-weight: 600;
+}
+
+.button--primary:hover,
+.button--primary.button--outline:hover {
+  --ifm-button-background-color: var(--lc-primary-dark);
+  --ifm-button-color: #FFFFFF;
+}
+
+.button--primary:active,
+.button--primary.button--active {
+  --ifm-button-background-color: var(--lc-primary-darker);
+}
+
+/* Secondary, and an outline with no colour of its own: Raised, a hairline and the lit top edge */
+.button.button--secondary,
+.button.button--secondary.button--outline:not(.button--active):not(:hover),
+.button--outline:not(.button--primary, .button--success, .button--info, .button--warning, .button--danger) {
+  --ifm-button-background-color: var(--lc-raised);
+  --ifm-button-color: var(--lc-text-color);
+
+  box-shadow: inset 0 0 0 1px var(--lc-border-color), var(--lc-inset-highlight);
+  color: var(--lc-text-color);
+}
+
+.button.button--secondary:hover,
+.button--outline:not(.button--primary, .button--success, .button--info, .button--warning, .button--danger):hover {
+  --ifm-button-background-color: var(--lc-popover);
+  --ifm-button-color: var(--lc-text-color);
+
+  box-shadow: inset 0 0 0 1px var(--lc-border-strong-color), var(--lc-inset-highlight);
+  color: var(--lc-text-color);
+}
+
+.button.button--secondary:active,
+.button--outline:not(.button--primary, .button--success, .button--info, .button--warning, .button--danger):active {
+  --ifm-button-background-color: var(--lc-pressed-background);
+}
+
+/* Text buttons rest in secondary text and light up on hover */
+.button--link {
+  --ifm-button-background-color: transparent;
+  --ifm-button-color: var(--lc-text-secondary-color);
+}
+
+.button--link:hover {
+  --ifm-button-background-color: var(--lc-hover-background);
+  --ifm-button-color: var(--lc-text-title-color);
+  text-decoration: none;
+}
+
+.button:focus-visible {
+  outline: 2px solid var(--lc-accent-text-color);
+  outline-offset: 2px;
+}
+
+.button.disabled,
+.button:disabled {
+  --ifm-button-background-color: var(--lc-disabled-background);
+  --ifm-button-color: var(--lc-text-disabled-color);
+
+  box-shadow: inset 0 0 0 1px var(--lc-divider-row-color);
+  opacity: 1;
+}
+
+.button svg {
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+}
+
+/* ── Badges: the server's tags ────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border: 1px solid var(--lc-border-color);
+  border-radius: var(--lc-radius-sm);
+  background: var(--lc-popover);
+  color: var(--lc-text-secondary-color);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.badge--primary,
+.badge--info {
+  border-color: color-mix(in srgb, var(--lc-accent-text-color) 39%, transparent);
+  background: color-mix(in srgb, var(--lc-primary) 20%, transparent);
+  color: var(--lc-accent-hover-color);
+}
+
+.badge--success {
+  border-color: color-mix(in srgb, var(--lc-success-text-color) 39%, transparent);
+  background: color-mix(in srgb, var(--lc-success) 20%, transparent);
+  color: #95DE64;
+}
+
+.badge--warning {
+  border-color: color-mix(in srgb, var(--lc-warning-text-color) 39%, transparent);
+  background: color-mix(in srgb, var(--lc-warning) 20%, transparent);
+  color: var(--lc-warning-text-color);
+}
+
+.badge--danger {
+  border-color: color-mix(in srgb, var(--lc-danger-text-color) 39%, transparent);
+  background: color-mix(in srgb, var(--lc-danger) 20%, transparent);
+  color: var(--lc-danger-text-color);
+}
+
+/* ── Cards, pagination, tabs, details ─────────────────────────── */
+.card {
+  border: 1px solid var(--lc-border-card-color);
+  border-radius: var(--lc-radius-lg);
+  background: var(--lc-panel-background);
+  box-shadow: var(--lc-inset-highlight);
+}
+
+a.card:hover {
+  border-color: var(--lc-border-strong-color);
+}
+
+.pagination-nav__link {
+  border: 1px solid var(--lc-border-card-color);
+  background: var(--lc-panel-background);
+  box-shadow: var(--lc-inset-highlight);
+  transition: border-color 0.15s;
+}
+
+.pagination-nav__link:hover {
+  border-color: var(--lc-border-strong-color);
+}
+
+.pagination-nav__sublabel {
+  color: var(--lc-text-tertiary-color);
+  font-size: var(--lc-kicker-size);
+  font-weight: 600;
+  letter-spacing: var(--lc-kicker-tracking);
+  text-transform: uppercase;
+}
+
+.pagination-nav__label {
+  color: var(--lc-text-title-color);
+  font-weight: 600;
+}
+
+.tabs {
+  border-bottom: 1px solid var(--lc-border-subtle-color);
+}
+
+.tabs__item {
+  border-radius: var(--lc-radius-md) var(--lc-radius-md) 0 0;
+  color: var(--lc-text-secondary-color);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.tabs__item:hover {
+  background: var(--lc-hover-background);
+  color: var(--lc-text-title-color);
+}
+
+.tabs__item--active {
+  border-bottom-color: var(--lc-accent-text-color);
+  color: var(--lc-text-title-color);
+}
+
+details.alert,
+.theme-details {
+  --docusaurus-details-decoration-color: var(--lc-text-tertiary-color);
+  border: 1px solid var(--lc-border-color);
+  border-radius: var(--lc-radius-lg);
+  background: var(--lc-panel-background);
+  box-shadow: var(--lc-inset-highlight);
+  color: var(--lc-text-color);
+}
+
+/* ── Footer ───────────────────────────────────────────────────── */
+.footer--dark {
+  border-top: 1px solid var(--lc-border-subtle-color);
+  background: var(--lc-canvas);
+}
+
+.footer__title {
+  color: var(--lc-text-tertiary-color);
+  font-size: var(--lc-kicker-size);
+  font-weight: 600;
+  letter-spacing: var(--lc-kicker-tracking);
+  text-transform: uppercase;
+}
+
+.footer__link-item {
+  color: var(--lc-text-secondary-color);
+  font-size: 14px;
+}
+
+.footer__link-item:hover {
+  color: var(--lc-text-title-color);
+  text-decoration: none;
+}
+
+.footer__copyright {
+  color: var(--lc-text-tertiary-color);
+  font-size: 12px;
+}
+
+/* ── Content images ───────────────────────────────────────────── */
 article img,
 .markdown img {
-  border: 2px solid rgba(255,255,255,0.3);
-  box-shadow: 0 0 64px rgba(255,255,255,0.1);
-  border-radius: 6px;
+  border: 1px solid var(--lc-border-card-color);
+  border-radius: var(--lc-radius-lg);
+  box-shadow: var(--lc-shadow-popover);
+}
+
+/* ── Scrollbars ───────────────────────────────────────────────── */
+* {
+  scrollbar-color: var(--lc-pressed-background) transparent;
 }
